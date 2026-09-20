@@ -22,6 +22,24 @@ interface SettingsViewProps {
   sqlSchema: string;
 }
 
+const GROQ_PRESETS = [
+  { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B (Recommended)" },
+  { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B (560 t/s)" },
+  { id: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B" },
+  { id: "qwen-2.5-32b", label: "Qwen 2.5 32B" },
+  { id: "gemma2-9b-it", label: "Gemma 2 9B" },
+];
+
+const OLLAMA_PRESETS = [
+  { id: "llama3.3", label: "Llama 3.3 (Recommended)" },
+  { id: "deepseek-r1", label: "DeepSeek R1" },
+  { id: "qwen2.5", label: "Qwen 2.5" },
+  { id: "qwen2.5-coder", label: "Qwen 2.5 Coder" },
+  { id: "llama3.2", label: "Llama 3.2 (3B)" },
+  { id: "mistral", label: "Mistral" },
+  { id: "phi4", label: "Phi 4" },
+];
+
 export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) {
   const [isPending, startTransition] = useTransition();
   const [settings, setSettings] = useState<AppSettings>(initialSettings);
@@ -124,7 +142,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Sparkles className="h-5 w-5" />
           </div>
-          <h2 className="text-base font-bold text-white tracking-tight">AI Engine</h2>
+          <h2 className="text-base font-bold text-white tracking-tight">AI Engine (Groq & Ollama Cloud)</h2>
         </div>
 
         <div className="space-y-4">
@@ -141,7 +159,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             >
               <div className="font-bold text-white flex items-center gap-2 text-xs sm:text-sm">
                 <Cpu className="h-4 w-4 text-[#ff385c]" />
-                <span>Groq LPU</span>
+                <span>Groq LPU (Free Tier)</span>
               </div>
             </button>
 
@@ -163,7 +181,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
           {/* GROQ CONFIGURATION */}
           {(settings.ai_provider === "groq" || !settings.ai_provider) && (
-            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
@@ -180,7 +198,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Model Name
+                    Model Name (Manual or Select Preset)
                   </label>
                   <input
                     type="text"
@@ -191,12 +209,36 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   />
                 </div>
               </div>
+
+              {/* Groq Model Presets */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-wider mr-1">
+                  Groq Presets:
+                </span>
+                {GROQ_PRESETS.map((p) => {
+                  const isSelected = (settings.groq_model || "llama-3.3-70b-versatile") === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSettings({ ...settings, groq_model: p.id })}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
+                        isSelected
+                          ? "bg-[#ff385c] text-white font-bold shadow-sm"
+                          : "bg-white/5 hover:bg-white/10 text-[#cbd5e1] border border-white/10"
+                      }`}
+                    >
+                      {p.id}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
           {/* OLLAMA CONFIGURATION */}
           {settings.ai_provider === "ollama" && (
-            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
@@ -236,6 +278,30 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
+              </div>
+
+              {/* Ollama Model Presets */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-wider mr-1">
+                  Ollama Presets:
+                </span>
+                {OLLAMA_PRESETS.map((p) => {
+                  const isSelected = (settings.ollama_model || "llama3.3") === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setSettings({ ...settings, ollama_model: p.id })}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
+                        isSelected
+                          ? "bg-[#38bdf8] text-black font-bold shadow-sm"
+                          : "bg-white/5 hover:bg-white/10 text-[#cbd5e1] border border-white/10"
+                      }`}
+                    >
+                      {p.id}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -459,7 +525,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+            <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
               <Database className="h-5 w-5" />
             </div>
             <h2 className="text-base font-bold text-white tracking-tight">Supabase Schema</h2>
