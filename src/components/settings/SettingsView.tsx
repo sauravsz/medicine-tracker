@@ -72,7 +72,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3 font-sans">
             <SettingsIcon className="h-7 w-7 text-[#ff385c]" />
             <span>Settings & Preferences</span>
           </h1>
@@ -84,7 +84,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 rounded-full shadow-md shadow-[#ff385c]/30 transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-7 py-2.5 text-sm font-semibold liquid-btn-primary rounded-full shadow-lg transition-all spring-tap disabled:opacity-50"
         >
           <Check className="h-4 w-4 stroke-[2.5]" />
           <span>{isPending ? "Saving..." : saveSuccess ? "Saved!" : "Save Settings"}</span>
@@ -92,13 +92,13 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       </div>
 
       {/* 1. Global Channel Lead Times */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1e2536]">
-          <div className="p-2.5 rounded-full bg-[#1c2333] text-[#ff385c]">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Default Channel Delivery Windows</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">Default Channel Delivery Windows</h2>
             <p className="text-[13px] text-[#94a3b8]">
               Global delivery turnaround applied when calculating order-by deadlines
             </p>
@@ -107,7 +107,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Apollo */}
-          <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] space-y-3">
+          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
             <span className="font-bold text-xs text-white block">Apollo 24|7 (Online)</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
@@ -119,7 +119,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_apollo_lead_min: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -131,7 +131,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_apollo_lead_max: parseInt(e.target.value) || 1 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -139,7 +139,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           </div>
 
           {/* Mr. Med */}
-          <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] space-y-3">
+          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
             <span className="font-bold text-xs text-white block">Mr. Med (Online)</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
@@ -151,7 +151,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_mr_med_lead_min: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -163,7 +163,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_mr_med_lead_max: parseInt(e.target.value) || 1 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -171,7 +171,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           </div>
 
           {/* Offline Store */}
-          <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] space-y-3">
+          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
             <span className="font-bold text-xs text-white block">Offline Local Store</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
@@ -183,7 +183,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_offline_lead_min: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -195,7 +195,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   onChange={(e) =>
                     setSettings({ ...settings, default_offline_lead_max: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -204,7 +204,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         </div>
 
         {/* Global Safety Buffer */}
-        <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <span className="text-xs font-bold text-white block">Global Safety Buffer (Days)</span>
             <p className="text-[12px] text-[#94a3b8] mt-0.5">
@@ -220,7 +220,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               onChange={(e) =>
                 setSettings({ ...settings, default_safety_buffer_days: parseInt(e.target.value) || 0 })
               }
-              className="w-20 bg-[#131722] border border-[#202738] rounded-xl px-3 py-1.5 text-sm text-white font-mono text-center font-bold"
+              className="w-20 liquid-glass-input rounded-xl px-3 py-1.5 text-sm text-white font-mono text-center font-bold"
             />
             <span className="text-xs text-[#94a3b8] font-mono">days</span>
           </div>
@@ -228,13 +228,13 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       </section>
 
       {/* 2. Daily Reminders & Email Digest */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1e2536]">
-          <div className="p-2.5 rounded-full bg-[#1c2333] text-[#ff385c]">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Bell className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Automated Daily Reorder Digest</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">Automated Daily Reorder Digest</h2>
             <p className="text-[13px] text-[#94a3b8]">
               Evaluates inventory every morning and sends a single email when any medicine requires reordering
             </p>
@@ -242,7 +242,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536]">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-black/30 border border-white/5">
             <div>
               <span className="text-xs font-bold text-white block">Enable Daily Reorder Digest</span>
               <span className="text-[12px] text-[#94a3b8]">
@@ -253,7 +253,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               type="button"
               onClick={() => setSettings({ ...settings, reminders_enabled: !settings.reminders_enabled })}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                settings.reminders_enabled ? "bg-[#ff385c]" : "bg-[#283244]"
+                settings.reminders_enabled ? "bg-[#ff385c]" : "bg-white/20"
               }`}
             >
               <span
@@ -274,7 +274,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 placeholder="your.email@gmail.com"
                 value={settings.reminder_email || ""}
                 onChange={(e) => setSettings({ ...settings, reminder_email: e.target.value })}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
               />
             </div>
 
@@ -286,13 +286,13 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 type="time"
                 value={settings.reminder_time}
                 onChange={(e) => setSettings({ ...settings, reminder_time: e.target.value })}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
               />
             </div>
           </div>
 
           {/* Test Trigger */}
-          <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
               <span className="text-xs font-bold text-white block">Test Cron Route</span>
               <span className="text-[12px] text-[#94a3b8]">
@@ -302,7 +302,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             <button
               type="button"
               onClick={handleTestCron}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#171d2b] hover:bg-[#1f2638] border border-[#293347] rounded-full transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
             >
               <Send className="h-3.5 w-3.5 text-[#ff385c]" />
               <span>Run Digest Now</span>
@@ -310,7 +310,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           </div>
 
           {testCronResult && (
-            <div className="p-3.5 rounded-xl bg-[#0e121a] border border-[#1e2536] text-xs font-mono text-[#38bdf8]">
+            <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-[#38bdf8]">
               {testCronResult}
             </div>
           )}
@@ -318,14 +318,14 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       </section>
 
       {/* 3. Supabase & Database Setup */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-[#1e2536]">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-[#1c2333] text-[#ff385c]">
+            <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
               <Database className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Database & Supabase Deployment</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight">Database & Supabase Deployment</h2>
               <p className="text-[13px] text-[#94a3b8]">
                 One-click Supabase Postgres SQL migration script ready to paste in Supabase SQL Editor
               </p>
@@ -335,7 +335,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           <button
             type="button"
             onClick={handleCopySql}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#171d2b] hover:bg-[#1f2638] border border-[#293347] rounded-full transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
           >
             {copiedSql ? <Check className="h-3.5 w-3.5 text-[#34d399]" /> : <Copy className="h-3.5 w-3.5 text-[#94a3b8]" />}
             <span>{copiedSql ? "Copied SQL!" : "Copy Supabase SQL"}</span>
@@ -347,7 +347,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             When you create your project on Supabase, navigate to <strong>SQL Editor</strong>, paste the schema script below and click Run. Then add your Supabase connection string to <code>DATABASE_URL</code> in Vercel.
           </p>
 
-          <div className="relative rounded-2xl bg-[#0e121a] border border-[#1e2536] p-4 font-mono text-[11px] text-[#cbd5e1] max-h-60 overflow-y-auto">
+          <div className="relative rounded-2xl bg-black/50 border border-white/10 p-4 font-mono text-[11px] text-[#cbd5e1] max-h-60 overflow-y-auto">
             <pre>{sqlSchema}</pre>
           </div>
         </div>

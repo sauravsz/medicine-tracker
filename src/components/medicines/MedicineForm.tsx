@@ -158,13 +158,13 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl mx-auto pb-16">
       {/* 1. Basic Information */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1e2536]">
-          <div className="p-2.5 rounded-full bg-[#1c2333] text-[#ff385c]">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Pill className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Medicine Profile</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">Medicine Profile</h2>
             <p className="text-[13px] text-[#94a3b8]">Pharmaceutical formulation, form, and packaging size</p>
           </div>
         </div>
@@ -180,7 +180,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c]"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white"
             />
           </div>
 
@@ -193,7 +193,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               placeholder="e.g. 50mcg, 40mg, 500mg/2mg"
               value={strength}
               onChange={(e) => setStrength(e.target.value)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
           </div>
 
@@ -202,7 +202,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
             <select
               value={form}
               onChange={(e) => setForm(e.target.value as MedicineFormType)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] capitalize"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white capitalize"
             >
               <option value="tablet" className="bg-[#131722]">Tablet</option>
               <option value="capsule" className="bg-[#131722]">Capsule</option>
@@ -223,7 +223,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               placeholder="tablets, capsules, ml, sachets"
               value={unitLabel}
               onChange={(e) => setUnitLabel(e.target.value)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c]"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white"
             />
           </div>
 
@@ -237,7 +237,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               step="1"
               value={unitsPerPack}
               onChange={(e) => setUnitsPerPack(parseInt(e.target.value) || 1)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
             <p className="text-[11px] text-[#94a3b8] mt-1">e.g. 10 or 15 tabs/strip, 120 tabs/bottle</p>
           </div>
@@ -245,14 +245,14 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
       </section>
 
       {/* 2. Dose Schedule Builder */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-        <div className="flex items-center justify-between pb-4 border-b border-[#1e2536]">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-[#1c2333] text-white">
+            <div className="p-2.5 rounded-2xl bg-white/10 text-white border border-white/15">
               <Clock className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Dosage Schedule</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight">Dosage Schedule</h2>
               <p className="text-[13px] text-[#94a3b8]">Prescription timings, fractional doses, and frequency</p>
             </div>
           </div>
@@ -260,7 +260,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           <button
             type="button"
             onClick={addScheduleRow}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#171d2b] hover:bg-[#1f2638] border border-[#293347] rounded-full transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-all spring-tap"
           >
             <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
             <span>Add Dose</span>
@@ -271,7 +271,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           {schedules.map((row, idx) => (
             <div
               key={idx}
-              className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] grid grid-cols-1 sm:grid-cols-12 gap-3 items-center"
+              className="p-4 rounded-2xl bg-black/40 border border-white/10 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center backdrop-blur-md"
             >
               <div className="sm:col-span-3">
                 <label className="block text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider mb-1">
@@ -280,16 +280,16 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                 <select
                   value={row.time_of_day}
                   onChange={(e) => updateScheduleRow(idx, "time_of_day", e.target.value)}
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c] capitalize"
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white capitalize"
                 >
-                  <option value="morning">Morning</option>
-                  <option value="afternoon">Afternoon</option>
-                  <option value="evening">Evening</option>
-                  <option value="night">Night</option>
-                  <option value="with_breakfast">With Breakfast</option>
-                  <option value="before_breakfast">Before Breakfast</option>
-                  <option value="after_dinner">After Dinner</option>
-                  <option value="as_needed">As Needed / SOS</option>
+                  <option value="morning" className="bg-[#131722]">Morning</option>
+                  <option value="afternoon" className="bg-[#131722]">Afternoon</option>
+                  <option value="evening" className="bg-[#131722]">Evening</option>
+                  <option value="night" className="bg-[#131722]">Night</option>
+                  <option value="with_breakfast" className="bg-[#131722]">With Breakfast</option>
+                  <option value="before_breakfast" className="bg-[#131722]">Before Breakfast</option>
+                  <option value="after_dinner" className="bg-[#131722]">After Dinner</option>
+                  <option value="as_needed" className="bg-[#131722]">As Needed / SOS</option>
                 </select>
               </div>
 
@@ -303,7 +303,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   step="0.1"
                   value={row.quantity}
                   onChange={(e) => updateScheduleRow(idx, "quantity", parseFloat(e.target.value) || 0)}
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                 />
               </div>
 
@@ -314,13 +314,13 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                 <select
                   value={row.interval_days}
                   onChange={(e) => updateScheduleRow(idx, "interval_days", parseInt(e.target.value) || 1)}
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c]"
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white"
                 >
-                  <option value={1}>Every Day (Daily)</option>
-                  <option value={2}>Every 2 Days (Alternate)</option>
-                  <option value={7}>Once a Week (Weekly)</option>
-                  <option value={14}>Every 2 Weeks</option>
-                  <option value={30}>Once a Month</option>
+                  <option value={1} className="bg-[#131722]">Every Day (Daily)</option>
+                  <option value={2} className="bg-[#131722]">Every 2 Days (Alternate)</option>
+                  <option value={7} className="bg-[#131722]">Once a Week (Weekly)</option>
+                  <option value={14} className="bg-[#131722]">Every 2 Weeks</option>
+                  <option value={30} className="bg-[#131722]">Once a Month</option>
                 </select>
               </div>
 
@@ -333,7 +333,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   placeholder="e.g. Empty stomach"
                   value={row.instructions}
                   onChange={(e) => updateScheduleRow(idx, "instructions", e.target.value)}
-                  className="w-full bg-[#131722] border border-[#202738] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c]"
+                  className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white"
                 />
               </div>
 
@@ -342,7 +342,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   type="button"
                   disabled={schedules.length <= 1}
                   onClick={() => removeScheduleRow(idx)}
-                  className="p-2 text-[#94a3b8] hover:text-[#fb7185] hover:bg-[#171d2b] rounded-full disabled:opacity-30 transition-colors"
+                  className="p-2 text-[#94a3b8] hover:text-[#fb7185] hover:bg-white/10 rounded-full disabled:opacity-30 transition-colors spring-tap"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -352,9 +352,9 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
         </div>
 
         {/* Live Summary Preview */}
-        <div className="p-4 rounded-2xl bg-[#0e121a] border border-[#1e2536] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+        <div className="p-4 rounded-2xl bg-white/[0.04] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2 text-white">
-            <span className="font-bold">Total Daily Rate:</span>
+            <span className="font-bold">Daily Consumption:</span>
             <span className="font-mono font-bold text-sm text-[#ff385c]">
               {dailyRate} {unitLabel}/day
             </span>
@@ -372,13 +372,13 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
       </section>
 
       {/* 3. Physical Stock Anchor */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1e2536]">
-          <div className="p-2.5 rounded-full bg-[#1c2333] text-white">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-white/10 text-white border border-white/15">
             <Layers className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Current Physical Stock Anchor</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">Current Physical Stock Anchor</h2>
             <p className="text-[13px] text-[#94a3b8]">
               Exact physical units in hand for continuous time-anchored stock depletion
             </p>
@@ -398,7 +398,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                 value={baselineStock}
                 onChange={(e) => setBaselineStock(parseFloat(e.target.value) || 0)}
                 required
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-base font-bold text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-base font-bold text-white font-mono"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[#94a3b8] font-mono font-medium">
                 {unitLabel}
@@ -412,7 +412,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               type="date"
               value={baselineDate}
               onChange={(e) => setBaselineDate(e.target.value)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
           </div>
 
@@ -426,7 +426,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               placeholder="Default: 2 days"
               value={safetyBuffer}
               onChange={(e) => setSafetyBuffer(e.target.value)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
             <p className="text-[11px] text-[#94a3b8] mt-1">Leave empty to inherit global default (2 days)</p>
           </div>
@@ -434,13 +434,13 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
       </section>
 
       {/* 4. Channel Lead Time Overrides */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl space-y-5">
-        <div className="flex items-center gap-3 pb-4 border-b border-[#1e2536]">
-          <div className="p-2.5 rounded-full bg-[#1c2333] text-white">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-white/10 text-white border border-white/15">
             <Building2 className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white">Purchase Channels & Lead Times</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">Purchase Channels & Lead Times</h2>
             <p className="text-[13px] text-[#94a3b8]">
               Delivery lead times and availability for this specific medicine
             </p>
@@ -452,8 +452,8 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           <div
             className={`p-4 rounded-2xl border transition-all ${
               apolloConfig.available
-                ? "bg-[#0e121a] border-[#1e2536]"
-                : "bg-[#0e121a] border-[#1e2536] opacity-40"
+                ? "bg-white/[0.04] border-white/10"
+                : "bg-white/[0.02] border-white/5 opacity-40"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -463,7 +463,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   type="checkbox"
                   checked={apolloConfig.available}
                   onChange={(e) => setApolloConfig({ ...apolloConfig, available: e.target.checked })}
-                  className="rounded border-[#202738] text-[#ff385c] focus:ring-0"
+                  className="rounded border-white/20 text-[#ff385c] focus:ring-0"
                 />
                 <span>Available</span>
               </label>
@@ -478,7 +478,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setApolloConfig({ ...apolloConfig, lead_time_min_days: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -490,7 +490,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setApolloConfig({ ...apolloConfig, lead_time_max_days: parseInt(e.target.value) || 1 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -500,8 +500,8 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           <div
             className={`p-4 rounded-2xl border transition-all ${
               mrMedConfig.available
-                ? "bg-[#0e121a] border-[#1e2536]"
-                : "bg-[#0e121a] border-[#1e2536] opacity-40"
+                ? "bg-white/[0.04] border-white/10"
+                : "bg-white/[0.02] border-white/5 opacity-40"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -511,7 +511,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   type="checkbox"
                   checked={mrMedConfig.available}
                   onChange={(e) => setMrMedConfig({ ...mrMedConfig, available: e.target.checked })}
-                  className="rounded border-[#202738] text-[#ff385c] focus:ring-0"
+                  className="rounded border-white/20 text-[#ff385c] focus:ring-0"
                 />
                 <span>Available</span>
               </label>
@@ -526,7 +526,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setMrMedConfig({ ...mrMedConfig, lead_time_min_days: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -538,7 +538,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setMrMedConfig({ ...mrMedConfig, lead_time_max_days: parseInt(e.target.value) || 1 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -548,8 +548,8 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           <div
             className={`p-4 rounded-2xl border transition-all ${
               offlineConfig.available
-                ? "bg-[#0e121a] border-[#1e2536]"
-                : "bg-[#0e121a] border-[#1e2536] opacity-40"
+                ? "bg-white/[0.04] border-white/10"
+                : "bg-white/[0.02] border-white/5 opacity-40"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
@@ -559,7 +559,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   type="checkbox"
                   checked={offlineConfig.available}
                   onChange={(e) => setOfflineConfig({ ...offlineConfig, available: e.target.checked })}
-                  className="rounded border-[#202738] text-[#ff385c] focus:ring-0"
+                  className="rounded border-white/20 text-[#ff385c] focus:ring-0"
                 />
                 <span>Available</span>
               </label>
@@ -574,7 +574,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setOfflineConfig({ ...offlineConfig, lead_time_min_days: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
               <div>
@@ -586,7 +586,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
                   onChange={(e) =>
                     setOfflineConfig({ ...offlineConfig, lead_time_max_days: parseInt(e.target.value) || 0 })
                   }
-                  className="w-full bg-[#131722] border border-[#202738] rounded-lg px-2.5 py-1.5 text-white font-mono"
+                  className="w-full liquid-glass-input rounded-xl px-2.5 py-1.5 text-white font-mono"
                 />
               </div>
             </div>
@@ -594,8 +594,8 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
         </div>
       </section>
 
-      {/* 5. Doctor & Prescription Notes */}
-      <section className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl">
+      {/* 5. Doctor Notes */}
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl">
         <label className="block text-[12px] font-bold text-white mb-2">
           Doctor / Prescription Remarks & Notes
         </label>
@@ -604,7 +604,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           placeholder="e.g. Prescribed for hypertension. Take empty stomach 30 mins before breakfast."
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          className="w-full bg-[#0e121a] border border-[#202738] rounded-xl p-3 text-sm text-white placeholder:text-[#64748b] focus:outline-none focus:border-[#ff385c]"
+          className="w-full liquid-glass-input rounded-2xl p-4 text-sm text-white placeholder:text-[#64748b]"
         />
       </section>
 
@@ -613,14 +613,14 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-6 py-3 text-sm font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors"
+          className="px-6 py-3 text-sm font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors spring-tap"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isPending || !name.trim()}
-          className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 rounded-full shadow-md shadow-[#ff385c]/25 transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-8 py-3 text-sm font-semibold liquid-btn-primary rounded-full shadow-lg transition-all spring-tap disabled:opacity-50"
         >
           <Check className="h-4 w-4 stroke-[2.5]" />
           <span>{isPending ? "Saving..." : isEditing ? "Save Changes" : "Create Medicine"}</span>

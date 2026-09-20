@@ -45,16 +45,16 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="bg-[#131722] border border-[#222b3d] rounded-3xl w-full max-w-md shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="liquid-glass-panel rounded-3xl w-full max-w-md shadow-2xl overflow-hidden border border-white/15 animate-spring-in">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#1e2536]">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-[#1c2333] text-white">
+            <div className="p-2.5 rounded-2xl bg-white/10 text-white border border-white/15">
               <Sliders className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Stock Count & Audit</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight">Stock Count & Audit</h2>
               <p className="text-[13px] text-[#94a3b8]">
                 {item.medicine.name} — On Hand: {item.on_hand_stock} {item.medicine.unit_label}
               </p>
@@ -62,7 +62,7 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
           </div>
           <button
             onClick={onClose}
-            className="text-[#94a3b8] hover:text-white p-2 rounded-full hover:bg-[#1a202c] transition-colors"
+            className="text-[#94a3b8] hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors spring-tap"
           >
             <X className="h-5 w-5" />
           </button>
@@ -70,15 +70,15 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Mode Switcher */}
-          <div className="flex items-center justify-between text-xs bg-[#0e121a] p-1 rounded-xl border border-[#1e2536]">
+          <div className="flex items-center justify-between text-xs bg-black/40 p-1 rounded-2xl border border-white/10">
             <button
               type="button"
               onClick={() => {
                 setMode("recount");
                 setReason("audit_recount");
               }}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-                mode === "recount" ? "bg-[#1f2638] text-white shadow-sm" : "text-[#94a3b8]"
+              className={`flex-1 py-2 rounded-xl font-semibold transition-all spring-tap ${
+                mode === "recount" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8]"
               }`}
             >
               Exact Physical Count
@@ -89,8 +89,8 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
                 setMode("delta");
                 setReason("damaged_spilled");
               }}
-              className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-                mode === "delta" ? "bg-[#1f2638] text-white shadow-sm" : "text-[#94a3b8]"
+              className={`flex-1 py-2 rounded-xl font-semibold transition-all spring-tap ${
+                mode === "delta" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8]"
               }`}
             >
               Quick +/- Delta
@@ -108,7 +108,7 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
                 step="0.5"
                 value={exactCount}
                 onChange={(e) => setExactCount(parseFloat(e.target.value) || 0)}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-4 py-2.5 text-base font-bold text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-base font-bold text-white font-mono"
                 required
               />
               <p className="text-[11px] text-[#94a3b8] mt-1.5 font-medium">
@@ -128,7 +128,7 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
                     step="0.5"
                     value={deltaVal}
                     onChange={(e) => setDeltaVal(parseFloat(e.target.value) || 0)}
-                    className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                    className="w-full liquid-glass-input rounded-2xl px-4 py-2 text-sm text-white font-mono"
                     required
                   />
                   <span className="text-xs text-[#94a3b8] font-mono">{item.medicine.unit_label}</span>
@@ -140,7 +140,7 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value as StockAdjustment["reason"])}
-                  className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c]"
+                  className="w-full liquid-glass-input rounded-2xl px-4 py-2 text-xs text-white"
                 >
                   <option value="missed_dose" className="bg-[#131722]">Missed Dose (+)</option>
                   <option value="extra_dose" className="bg-[#131722]">Extra Dose Taken (-)</option>
@@ -160,22 +160,22 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
               placeholder="e.g. Recounted strip in medicine box"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-[#ff385c]"
+              className="w-full liquid-glass-input rounded-2xl px-4 py-2 text-xs text-white"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1e2536]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-xs font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors"
+              className="px-5 py-2.5 text-xs font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors spring-tap"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 rounded-full shadow-md transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-semibold liquid-btn-primary rounded-full shadow-md transition-all spring-tap disabled:opacity-50"
             >
               <Check className="h-4 w-4 stroke-[2.5]" />
               <span>{isPending ? "Saving..." : "Apply Count"}</span>

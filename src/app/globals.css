@@ -8,54 +8,196 @@
   --color-luxe: #460479;
   --color-plus: #92174d;
   
-  --color-canvas: #0c0f17;
-  --color-surface-card: #161b26;
-  --color-surface-soft: #111520;
-  --color-surface-strong: #1c2331;
+  --color-canvas: #090c14;
+  --color-surface-card: rgba(19, 25, 39, 0.65);
+  --color-surface-soft: rgba(14, 18, 28, 0.5);
+  --color-surface-strong: rgba(26, 34, 52, 0.7);
   
-  --color-hairline: #222a3a;
-  --color-hairline-soft: #1b2230;
-  --color-border-strong: #2e394e;
+  --color-hairline: rgba(255, 255, 255, 0.08);
+  --color-hairline-soft: rgba(255, 255, 255, 0.04);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
   
-  --color-ink: #f8fafc;
+  --color-ink: #ffffff;
   --color-body: #cbd5e1;
   --color-muted: #94a3b8;
   --color-muted-soft: #64748b;
 }
 
 :root {
-  --background: #0c0f17;
-  --foreground: #f8fafc;
+  --background: #090c14;
+  --foreground: #ffffff;
 }
 
 body {
-  background: #0c0f17;
-  color: #f8fafc;
-  font-family: -apple-system, BlinkMacSystemFont, "Circular", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  background: #090c14;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Circular", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* Airbnb dark card & search shadows */
-.airbnb-dark-card {
-  background: #151a24;
-  border: 1px solid #232b3b;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+/* ==========================================================================
+   LIQUID GLASS DESIGN SYSTEM & SPECULAR HIGHLIGHTS
+   ========================================================================== */
+
+.liquid-glass-nav {
+  background: rgba(10, 14, 23, 0.72);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 -1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.airbnb-dark-card-hover:hover {
-  border-color: #38455d;
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.65);
+.liquid-glass-panel {
+  background: rgba(16, 22, 36, 0.6);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 1px 0 rgba(0, 0, 0, 0.5),
+    0 16px 40px -12px rgba(0, 0, 0, 0.6);
+}
+
+.liquid-glass-card {
+  background: rgba(17, 23, 38, 0.58);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.15),
+    0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-card:hover {
+  background: rgba(22, 30, 48, 0.72);
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.25),
+    0 20px 40px -12px rgba(0, 0, 0, 0.7),
+    0 0 24px 0 rgba(255, 56, 92, 0.12);
+}
+
+.liquid-glass-pill {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0.5px rgba(255, 255, 255, 0.18);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.liquid-glass-input {
+  background: rgba(9, 12, 20, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+}
+
+.liquid-glass-input:focus {
+  background: rgba(14, 18, 28, 0.85);
+  border-color: #ff385c;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 3px rgba(255, 56, 92, 0.2);
+}
+
+/* ==========================================================================
+   SWIFTUI PURPOSEFUL SPRING ANIMATIONS
+   ========================================================================== */
+
+/* Interactive Tap Physics */
+.spring-tap {
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.spring-tap:active {
+  transform: scale(0.95);
+}
+
+/* Liquid Primary CTA Button */
+.liquid-btn-primary {
+  background: linear-gradient(135deg, #ff385c 0%, #e00b41 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow:
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.35),
+    0 4px 14px 0 rgba(255, 56, 92, 0.4);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-btn-primary:hover {
+  background: linear-gradient(135deg, #ff4d6d 0%, #f0144c 100%);
+  box-shadow:
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.45),
+    0 8px 24px 0 rgba(255, 56, 92, 0.55);
   transform: translateY(-2px);
 }
 
-.airbnb-dark-search {
-  background: #151a24;
-  border: 1px solid #283244;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+.liquid-btn-primary:active {
+  transform: scale(0.96) translateY(0);
+  box-shadow: 0 2px 8px rgba(255, 56, 92, 0.35);
 }
 
-.airbnb-dark-search:hover {
-  border-color: #3b4963;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+/* Fluid Ambient Light Keyframes */
+@keyframes ambientFloat1 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(60px, -40px) scale(1.15); }
+}
+
+@keyframes ambientFloat2 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-50px, 50px) scale(1.1); }
+}
+
+@keyframes ambientFloat3 {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(40px, 60px) scale(1.2); }
+}
+
+.animate-ambient-1 {
+  animation: ambientFloat1 18s ease-in-out infinite;
+}
+
+.animate-ambient-2 {
+  animation: ambientFloat2 22s ease-in-out infinite;
+}
+
+.animate-ambient-3 {
+  animation: ambientFloat3 26s ease-in-out infinite;
+}
+
+/* Staggered Spring Reveal */
+@keyframes springCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-spring-in {
+  animation: springCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Pulse Glow Keyframes for Urgency */
+@keyframes pulseGlowRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+  50% { box-shadow: 0 0 16px 4px rgba(244, 63, 94, 0.6); }
+}
+
+.glow-urgent {
+  animation: pulseGlowRed 2.5s infinite;
 }

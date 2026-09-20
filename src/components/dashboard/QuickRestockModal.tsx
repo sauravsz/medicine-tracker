@@ -52,16 +52,16 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="bg-[#131722] border border-[#222b3d] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="liquid-glass-panel rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden border border-white/15 animate-spring-in">
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#1e2536]">
+        <div className="flex items-center justify-between p-6 border-b border-white/10 bg-white/[0.02]">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-full bg-[#1c2333] text-[#ff385c]">
+            <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
               <Truck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white">Log Restock Order</h2>
+              <h2 className="text-lg font-bold text-white tracking-tight">Log Restock Order</h2>
               <p className="text-[13px] text-[#94a3b8]">
                 {item.medicine.name} {item.medicine.strength && `(${item.medicine.strength})`}
               </p>
@@ -69,7 +69,7 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
           </div>
           <button
             onClick={onClose}
-            className="text-[#94a3b8] hover:text-white p-2 rounded-full hover:bg-[#1a202c] transition-colors"
+            className="text-[#94a3b8] hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors spring-tap"
           >
             <X className="h-5 w-5" />
           </button>
@@ -83,18 +83,18 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
             </label>
             <div className="grid grid-cols-3 gap-2.5">
               {[
-                { id: "apollo", label: "Apollo 24|7", desc: "7–10d delivery" },
-                { id: "mr_med", label: "Mr. Med", desc: "3–5d delivery" },
-                { id: "offline", label: "Local Chemist", desc: "0–1d immediate" },
+                { id: "apollo", label: "Apollo 24|7", desc: "7–10d lead" },
+                { id: "mr_med", label: "Mr. Med", desc: "3–5d lead" },
+                { id: "offline", label: "Local Chemist", desc: "0–1d lead" },
               ].map((c) => (
                 <button
                   key={c.id}
                   type="button"
                   onClick={() => setChannel(c.id as ChannelType)}
-                  className={`p-3 rounded-2xl border text-left transition-all text-xs ${
+                  className={`p-3 rounded-2xl border text-left transition-all text-xs spring-tap ${
                     channel === c.id
-                      ? "border-[#ff385c] bg-[#1a202c] ring-1 ring-[#ff385c]"
-                      : "border-[#202738] bg-[#0e121a] text-[#94a3b8] hover:border-[#35415c]"
+                      ? "border-[#ff385c] bg-[#ff385c]/15 text-white ring-1 ring-[#ff385c]/40 shadow-lg shadow-[#ff385c]/10"
+                      : "border-white/10 bg-white/[0.03] text-[#94a3b8] hover:border-white/20"
                   }`}
                 >
                   <div className="font-bold text-white">{c.label}</div>
@@ -106,12 +106,12 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
 
           {/* Quantity Mode */}
           {unitsPerPack > 1 && (
-            <div className="flex items-center justify-between text-xs bg-[#0e121a] p-1 rounded-xl border border-[#1e2536]">
+            <div className="flex items-center justify-between text-xs bg-black/40 p-1 rounded-2xl border border-white/10">
               <button
                 type="button"
                 onClick={() => setMode("packs")}
-                className={`flex-1 py-1.5 rounded-lg font-semibold transition-all ${
-                  mode === "packs" ? "bg-[#1f2638] text-white shadow-sm" : "text-[#94a3b8]"
+                className={`flex-1 py-1.5 rounded-xl font-semibold transition-all spring-tap ${
+                  mode === "packs" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8]"
                 }`}
               >
                 By Packs ({unitsPerPack} {item.medicine.unit_label}/pack)
@@ -119,8 +119,8 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
               <button
                 type="button"
                 onClick={() => setMode("units")}
-                className={`flex-1 py-1.5 rounded-lg font-semibold transition-all ${
-                  mode === "units" ? "bg-[#1f2638] text-white shadow-sm" : "text-[#94a3b8]"
+                className={`flex-1 py-1.5 rounded-xl font-semibold transition-all spring-tap ${
+                  mode === "units" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8]"
                 }`}
               >
                 By Loose Units ({item.medicine.unit_label})
@@ -141,7 +141,7 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
                   step="1"
                   value={packCount}
                   onChange={(e) => setPackCount(parseInt(e.target.value) || 0)}
-                  className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                  className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
                   required
                 />
               </div>
@@ -156,7 +156,7 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
                   step="1"
                   value={looseUnits}
                   onChange={(e) => setLooseUnits(parseInt(e.target.value) || 0)}
-                  className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                  className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
                   required
                 />
               </div>
@@ -168,32 +168,32 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
                 type="date"
                 value={orderedDate}
                 onChange={(e) => setOrderedDate(e.target.value)}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
                 required
               />
             </div>
           </div>
 
-          <div className="bg-[#0e121a] p-3.5 rounded-2xl border border-[#1e2536] flex items-center justify-between text-xs">
-            <span className="text-[#94a3b8] font-medium">Total Units Adding:</span>
+          <div className="p-3.5 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-between text-xs">
+            <span className="text-[#94a3b8] font-medium">Total Adding:</span>
             <span className="font-mono font-bold text-white text-sm">
               +{calculatedTotalUnits} {item.medicine.unit_label}
             </span>
           </div>
 
           {/* Delivery Status Toggle */}
-          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#0e121a] border border-[#1e2536]">
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
             <div>
               <span className="text-xs font-bold text-white block">Delivered / In Hand?</span>
               <span className="text-[11px] text-[#94a3b8]">
-                {isReceived ? "Stock increases on-hand immediately" : "Marked as in transit (mutes alerts)"}
+                {isReceived ? "Stock increases immediately on-hand" : "Marked as in transit (mutes alerts)"}
               </span>
             </div>
             <button
               type="button"
               onClick={() => setIsReceived(!isReceived)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                isReceived ? "bg-[#ff385c]" : "bg-[#283244]"
+                isReceived ? "bg-[#ff385c]" : "bg-white/20"
               }`}
             >
               <span
@@ -214,7 +214,7 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
                 placeholder="240.00"
                 value={cost}
                 onChange={(e) => setCost(e.target.value)}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff385c] font-mono"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2 text-sm text-white font-mono"
               />
             </div>
             <div>
@@ -224,24 +224,24 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
                 placeholder="Apollo #98421"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-[#0e121a] border border-[#202738] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-[#ff385c]"
+                className="w-full liquid-glass-input rounded-2xl px-4 py-2 text-sm text-white"
               />
             </div>
           </div>
 
           {/* Submit */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#1e2536]">
+          <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-xs font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors"
+              className="px-5 py-2.5 text-xs font-semibold text-[#94a3b8] hover:text-white rounded-full transition-colors spring-tap"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isPending || calculatedTotalUnits <= 0}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 rounded-full shadow-md transition-all disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-xs font-semibold liquid-btn-primary rounded-full shadow-md transition-all spring-tap disabled:opacity-50"
             >
               <Check className="h-4 w-4 stroke-[2.5]" />
               <span>{isPending ? "Saving..." : "Confirm Restock"}</span>

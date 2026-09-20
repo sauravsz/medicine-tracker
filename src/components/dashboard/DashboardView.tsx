@@ -73,7 +73,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Filter Chips & View Mode Toggle */}
+      {/* Top Filter Chips & View Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <StatCards
           summary={summary}
@@ -81,13 +81,13 @@ export function DashboardView({ initialData }: DashboardViewProps) {
           onSelectFilter={(f) => setStatusFilter(f)}
         />
 
-        {/* Grid vs Table Switcher */}
-        <div className="flex items-center gap-1 p-1 bg-[#131722] border border-[#1e2536] rounded-full shrink-0 self-end sm:self-auto">
+        {/* Liquid Glass View Mode Switcher */}
+        <div className="flex items-center gap-1 p-1 liquid-glass-pill rounded-full shrink-0 self-end sm:self-auto">
           <button
             onClick={() => setViewMode("grid")}
             title="Grid View"
-            className={`p-2 rounded-full transition-colors ${
-              viewMode === "grid" ? "bg-[#1c2333] text-white" : "text-[#64748b] hover:text-[#94a3b8]"
+            className={`p-2 rounded-full transition-all spring-tap ${
+              viewMode === "grid" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8] hover:text-white"
             }`}
           >
             <LayoutGrid className="h-4 w-4" />
@@ -95,8 +95,8 @@ export function DashboardView({ initialData }: DashboardViewProps) {
           <button
             onClick={() => setViewMode("table")}
             title="Dense Table View"
-            className={`p-2 rounded-full transition-colors ${
-              viewMode === "table" ? "bg-[#1c2333] text-white" : "text-[#64748b] hover:text-[#94a3b8]"
+            className={`p-2 rounded-full transition-all spring-tap ${
+              viewMode === "table" ? "bg-white/20 text-white shadow-sm" : "text-[#94a3b8] hover:text-white"
             }`}
           >
             <List className="h-4 w-4" />
@@ -110,11 +110,11 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         onRestockClick={(item) => setSelectedForRestock(item)}
       />
 
-      {/* Search & Sort Toolbar */}
-      <div className="bg-[#131722] rounded-full border border-[#222a3a] h-14 p-1.5 shadow-lg shadow-black/20 flex items-center justify-between transition-all hover:border-[#333e54]">
+      {/* Liquid Glass Search Bar */}
+      <div className="liquid-glass-panel rounded-full h-16 p-2 shadow-2xl flex items-center justify-between transition-all">
         {/* Search Input */}
-        <div className="flex-1 flex items-center px-4">
-          <Search className="h-4 w-4 text-[#64748b] mr-2.5 shrink-0" />
+        <div className="flex-1 flex items-center px-4 sm:px-6">
+          <Search className="h-4 w-4 text-[#94a3b8] mr-3 shrink-0" />
           <input
             type="text"
             placeholder="Search medicine by name, dose, or strength..."
@@ -125,28 +125,28 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         </div>
 
         {/* Divider hairline */}
-        <div className="hidden sm:block h-6 w-[1px] bg-[#222a3a]" />
+        <div className="hidden sm:block h-7 w-[1px] bg-white/10" />
 
         {/* Sort selector */}
-        <div className="hidden sm:flex items-center px-4 text-xs">
-          <span className="text-[#64748b] mr-2">Sort:</span>
+        <div className="hidden sm:flex items-center px-6 text-xs">
+          <span className="text-[#94a3b8] mr-2 font-medium">Sort:</span>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="bg-transparent text-[12px] text-[#cbd5e1] font-semibold focus:outline-none cursor-pointer"
+            className="bg-transparent text-[13px] text-white font-semibold focus:outline-none cursor-pointer"
           >
-            <option value="urgency" className="bg-[#131722] text-white">Urgency (Lowest stock)</option>
-            <option value="days_left" className="bg-[#131722] text-white">Days Left</option>
-            <option value="stock" className="bg-[#131722] text-white">Current Stock</option>
-            <option value="name" className="bg-[#131722] text-white">Name (A–Z)</option>
+            <option value="urgency" className="bg-[#10141e] text-white">Urgency (Lowest stock)</option>
+            <option value="days_left" className="bg-[#10141e] text-white">Days Left</option>
+            <option value="stock" className="bg-[#10141e] text-white">Current Stock</option>
+            <option value="name" className="bg-[#10141e] text-white">Name (A–Z)</option>
           </select>
         </div>
       </div>
 
-      {/* Main Content: Grid or Table View */}
+      {/* Main Content */}
       {filteredMedicines.length === 0 ? (
-        <div className="rounded-3xl border border-[#1e2536] bg-[#131722] p-12 text-center shadow-lg">
-          <div className="mx-auto h-14 w-14 rounded-full bg-[#1c2333] flex items-center justify-center text-[#94a3b8] mb-3">
+        <div className="rounded-3xl liquid-glass-panel p-12 text-center shadow-2xl">
+          <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-3 border border-white/15">
             <Pill className="h-7 w-7 text-[#ff385c]" />
           </div>
           <h3 className="text-lg font-bold text-white">No medicines found</h3>
@@ -158,7 +158,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
           <div className="mt-5">
             <Link
               href="/medicines/new"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] rounded-full shadow-md transition-all"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-[14px] font-semibold liquid-btn-primary rounded-full shadow-md transition-all spring-tap"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>Add First Medicine</span>
