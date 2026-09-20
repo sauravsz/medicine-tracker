@@ -14,12 +14,6 @@ export function AIAssistantBar({ onParsedCommand }: AIAssistantBarProps) {
   const [isListening, setIsListening] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const samplePrompts = [
-    "Bought 4 strips of Telma LN 40 from Apollo for ₹480",
-    "Recounted Renolog, have 5 strips and 4 tablets left",
-    "Ordered 2 strips of Ferronemia from Mr. Med",
-    "Doctor changed Trajenta to 1 morning and 1 night",
-  ];
 
   const handleVoiceInput = () => {
     if (!("webkitSpeechRecognition" in window) && !("SpeechRecognition" in window)) {
@@ -154,23 +148,6 @@ export function AIAssistantBar({ onParsedCommand }: AIAssistantBarProps) {
         </div>
       </form>
 
-      {/* Suggestion Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-[11px] text-[#94a3b8]">
-        <span className="font-semibold text-white/50 shrink-0">Try saying:</span>
-        {samplePrompts.map((sample, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => {
-              setPrompt(sample);
-              handleParse(sample);
-            }}
-            className="px-3 py-1 rounded-full bg-white/[0.03] hover:bg-white/10 border border-white/5 hover:border-white/15 text-[#cbd5e1] hover:text-white transition-all whitespace-nowrap shrink-0 spring-tap"
-          >
-            &ldquo;{sample}&rdquo;
-          </button>
-        ))}
-      </div>
 
       {errorMsg && (
         <p className="text-xs text-[#fb7185] pl-4 font-medium">{errorMsg}</p>

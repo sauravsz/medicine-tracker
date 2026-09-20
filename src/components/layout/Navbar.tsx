@@ -47,9 +47,6 @@ export function Navbar() {
           <div>
             <span className="font-bold text-[20px] tracking-tight text-white flex items-center gap-1.5 font-sans">
               medtrack
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#ff385c]/20 text-[#ff4d6d] border border-[#ff385c]/30 tracking-wide font-mono">
-                GLASS
-              </span>
             </span>
             <p className="text-[11px] text-[#94a3b8] -mt-1 font-medium tracking-tight">
               multi-channel reorder system
