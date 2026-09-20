@@ -71,29 +71,17 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 2. Write API keys to browser storage immediately
+    // 2. Persist to browser localStorage
     try {
-      if (settings.groq_api_key !== undefined) {
-        localStorage.setItem("medtrack_groq_api_key", settings.groq_api_key || "");
-      }
-      if (settings.groq_model) {
-        localStorage.setItem("medtrack_groq_model", settings.groq_model);
-      }
-      if (settings.ollama_api_key !== undefined) {
-        localStorage.setItem("medtrack_ollama_api_key", settings.ollama_api_key || "");
-      }
-      if (settings.ollama_base_url) {
-        localStorage.setItem("medtrack_ollama_base_url", settings.ollama_base_url);
-      }
-      if (settings.ollama_model) {
-        localStorage.setItem("medtrack_ollama_model", settings.ollama_model);
-      }
-      if (settings.ai_provider) {
-        localStorage.setItem("medtrack_ai_provider", settings.ai_provider);
-      }
+      localStorage.setItem("medtrack_groq_api_key", settings.groq_api_key || "");
+      localStorage.setItem("medtrack_groq_model", settings.groq_model || "openai/gpt-oss-120b");
+      localStorage.setItem("medtrack_ollama_api_key", settings.ollama_api_key || "");
+      localStorage.setItem("medtrack_ollama_base_url", settings.ollama_base_url || "https://ollama.com");
+      localStorage.setItem("medtrack_ollama_model", settings.ollama_model || "ollamacloud/gemma4:31b");
+      localStorage.setItem("medtrack_ai_provider", settings.ai_provider || "groq");
     } catch {}
 
-    // 3. Save standard settings to server
+    // 3. Save standard settings to server safely
     startTransition(async () => {
       try {
         await updateSettingsAction({
@@ -190,12 +178,10 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
               <Sparkles className="h-5 w-5" />
             </div>
-            <div>
-              <h2 className="text-base font-bold text-white tracking-tight">AI Engine (Saved in Browser)</h2>
-            </div>
+            <h2 className="text-base font-bold text-white tracking-tight">AI Engine (Browser Storage)</h2>
           </div>
           <span className="text-[10px] font-mono text-[#34d399] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 font-bold">
-            Local Storage Secure
+            Client Local Storage
           </span>
         </div>
 
@@ -204,7 +190,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setSettings({ ...settings, ai_provider: "groq" })}
+              onClick={() => {
+                const prov = "groq";
+                setSettings({ ...settings, ai_provider: prov });
+                try { localStorage.setItem("medtrack_ai_provider", prov); } catch {}
+              }}
               className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
                 settings.ai_provider === "groq" || !settings.ai_provider
                   ? "border-[#ff385c] bg-[#ff385c]/15 text-white ring-1 ring-[#ff385c]/40 shadow-lg shadow-[#ff385c]/15"
@@ -219,7 +209,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
             <button
               type="button"
-              onClick={() => setSettings({ ...settings, ai_provider: "ollama" })}
+              onClick={() => {
+                const prov = "ollama";
+                setSettings({ ...settings, ai_provider: prov });
+                try { localStorage.setItem("medtrack_ai_provider", prov); } catch {}
+              }}
               className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
                 settings.ai_provider === "ollama"
                   ? "border-[#38bdf8] bg-[#38bdf8]/15 text-white ring-1 ring-[#38bdf8]/40 shadow-lg shadow-[#38bdf8]/15"
@@ -245,7 +239,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     type="password"
                     placeholder="gsk_..."
                     value={settings.groq_api_key || ""}
-                    onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, groq_api_key: val });
+                      try { localStorage.setItem("medtrack_groq_api_key", val); } catch {}
+                    }}
                     className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
                 </div>
@@ -258,7 +256,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     type="text"
                     placeholder="openai/gpt-oss-120b"
                     value={settings.groq_model || "openai/gpt-oss-120b"}
-                    onChange={(e) => setSettings({ ...settings, groq_model: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, groq_model: val });
+                      try { localStorage.setItem("medtrack_groq_model", val); } catch {}
+                    }}
                     className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
                 </div>
@@ -275,7 +277,10 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => setSettings({ ...settings, groq_model: p.id })}
+                      onClick={() => {
+                        setSettings({ ...settings, groq_model: p.id });
+                        try { localStorage.setItem("medtrack_groq_model", p.id); } catch {}
+                      }}
                       className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected
                           ? "bg-[#ff385c] text-white font-bold shadow-sm"
@@ -302,7 +307,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     type="text"
                     placeholder="https://ollama.com"
                     value={settings.ollama_base_url || "https://ollama.com"}
-                    onChange={(e) => setSettings({ ...settings, ollama_base_url: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, ollama_base_url: val });
+                      try { localStorage.setItem("medtrack_ollama_base_url", val); } catch {}
+                    }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
@@ -315,7 +324,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     type="password"
                     placeholder="Bearer token or leave empty"
                     value={settings.ollama_api_key || ""}
-                    onChange={(e) => setSettings({ ...settings, ollama_api_key: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, ollama_api_key: val });
+                      try { localStorage.setItem("medtrack_ollama_api_key", val); } catch {}
+                    }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
@@ -328,7 +341,11 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     type="text"
                     placeholder="ollamacloud/gemma4:31b"
                     value={settings.ollama_model || "ollamacloud/gemma4:31b"}
-                    onChange={(e) => setSettings({ ...settings, ollama_model: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, ollama_model: val });
+                      try { localStorage.setItem("medtrack_ollama_model", val); } catch {}
+                    }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
@@ -345,7 +362,10 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     <button
                       key={p.id}
                       type="button"
-                      onClick={() => setSettings({ ...settings, ollama_model: p.id })}
+                      onClick={() => {
+                        setSettings({ ...settings, ollama_model: p.id });
+                        try { localStorage.setItem("medtrack_ollama_model", p.id); } catch {}
+                      }}
                       className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected
                           ? "bg-[#38bdf8] text-black font-bold shadow-sm"
