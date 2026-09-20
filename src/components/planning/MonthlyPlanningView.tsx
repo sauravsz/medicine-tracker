@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { CalculatedMedicineState } from "@/lib/types";
 import { QuickRestockModal } from "@/components/dashboard/QuickRestockModal";
-import { format, parseISO } from "date-fns";
+import { safeFormatDate } from "@/lib/calculations";
 
 interface MonthlyPlanningViewProps {
   medicines: CalculatedMedicineState[];
@@ -20,11 +20,6 @@ interface MonthlyPlanningViewProps {
 export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
   const [selectedForRestock, setSelectedForRestock] = useState<CalculatedMedicineState | null>(null);
   const [vendorFilter, setVendorFilter] = useState<string>("all");
-
-  const totalMonthlyPacks = medicines.reduce(
-    (sum, m) => sum + m.monthly_planning.packs_needed,
-    0
-  );
 
   const apolloGroup = medicines.filter((m) => m.monthly_planning.recommended_channel === "apollo");
   const mrMedGroup = medicines.filter((m) => m.monthly_planning.recommended_channel === "mr_med");
@@ -40,13 +35,13 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#222222] flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3">
             <span>Monthly Procurement Planning</span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#f7f7f7] text-[#222222] border border-[#dddddd] font-bold">
+            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#1c2333] text-[#cbd5e1] border border-[#2b364e] font-bold">
               30-Day Math
             </span>
           </h1>
-          <p className="text-sm text-[#6a6a6a] mt-1">
+          <p className="text-sm text-[#94a3b8] mt-1">
             Exact monthly strip/pack requirement based on prescribed daily frequency and strip packaging.
           </p>
         </div>
@@ -54,7 +49,7 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
         <div className="flex items-center gap-2">
           <Link
             href="/medicines/new"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] rounded-full shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] rounded-full shadow-md shadow-[#ff385c]/30 transition-all"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
             <span>Add Medicine</span>
@@ -65,102 +60,102 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
       {/* 3 Vendor Procurement Buckets */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Apollo 24|7 */}
-        <div className="bg-white border border-[#ebebeb] rounded-3xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-sm text-[#222222] flex items-center gap-2">
+              <span className="font-bold text-sm text-white flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-[#ff385c]" />
                 <span>Apollo 24|7 (Bulk Online)</span>
               </span>
-              <span className="text-xs font-mono text-[#6a6a6a] px-2.5 py-0.5 rounded-full bg-[#f7f7f7] border border-[#ebebeb]">
+              <span className="text-xs font-mono text-[#94a3b8] px-2.5 py-0.5 rounded-full bg-[#0e121a] border border-[#1b2130]">
                 7–10d Lead
               </span>
             </div>
-            <p className="text-xs text-[#6a6a6a] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] leading-relaxed">
               Order chronic supplies 12–14 days in advance to maximize discounts.
             </p>
 
-            <div className="my-4 p-4 rounded-2xl bg-[#f7f7f7] border border-[#ebebeb] flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6a6a6a]">Monthly Meds:</span>
-              <span className="font-mono font-bold text-[#222222] text-lg">
+            <div className="my-4 p-4 rounded-2xl bg-[#0e121a] border border-[#1b2130] flex items-center justify-between">
+              <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
+              <span className="font-mono font-bold text-white text-lg">
                 {apolloGroup.length} item{apolloGroup.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#6a6a6a] bg-[#f7f7f7] p-3 rounded-xl border border-[#ebebeb]">
+          <div className="text-[11px] text-[#94a3b8] bg-[#0e121a] p-3 rounded-xl border border-[#1b2130]">
             Order cutoff: 10 days before stockout + 2d buffer
           </div>
         </div>
 
         {/* Mr. Med */}
-        <div className="bg-white border border-[#ebebeb] rounded-3xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-sm text-[#222222] flex items-center gap-2">
+              <span className="font-bold text-sm text-white flex items-center gap-2">
                 <ShoppingBag className="h-4 w-4 text-[#ff385c]" />
                 <span>Mr. Med (Specialty Online)</span>
               </span>
-              <span className="text-xs font-mono text-[#6a6a6a] px-2.5 py-0.5 rounded-full bg-[#f7f7f7] border border-[#ebebeb]">
+              <span className="text-xs font-mono text-[#94a3b8] px-2.5 py-0.5 rounded-full bg-[#0e121a] border border-[#1b2130]">
                 3–5d Lead
               </span>
             </div>
-            <p className="text-xs text-[#6a6a6a] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] leading-relaxed">
               Fast online delivery for specialty chronic meds when Apollo cutoff passed.
             </p>
 
-            <div className="my-4 p-4 rounded-2xl bg-[#f7f7f7] border border-[#ebebeb] flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6a6a6a]">Monthly Meds:</span>
-              <span className="font-mono font-bold text-[#222222] text-lg">
+            <div className="my-4 p-4 rounded-2xl bg-[#0e121a] border border-[#1b2130] flex items-center justify-between">
+              <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
+              <span className="font-mono font-bold text-white text-lg">
                 {mrMedGroup.length} item{mrMedGroup.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#6a6a6a] bg-[#f7f7f7] p-3 rounded-xl border border-[#ebebeb]">
+          <div className="text-[11px] text-[#94a3b8] bg-[#0e121a] p-3 rounded-xl border border-[#1b2130]">
             Order cutoff: 5 days before stockout + 2d buffer
           </div>
         </div>
 
         {/* Offline Store */}
-        <div className="bg-white border border-[#ebebeb] rounded-3xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.05)] flex flex-col justify-between">
+        <div className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-bold text-sm text-[#222222] flex items-center gap-2">
+              <span className="font-bold text-sm text-white flex items-center gap-2">
                 <Truck className="h-4 w-4 text-[#ff385c]" />
                 <span>Local Offline Pharmacy</span>
               </span>
-              <span className="text-xs font-mono text-[#6a6a6a] px-2.5 py-0.5 rounded-full bg-[#f7f7f7] border border-[#ebebeb]">
+              <span className="text-xs font-mono text-[#94a3b8] px-2.5 py-0.5 rounded-full bg-[#0e121a] border border-[#1b2130]">
                 0–1d Immediate
               </span>
             </div>
-            <p className="text-xs text-[#6a6a6a] leading-relaxed">
+            <p className="text-xs text-[#94a3b8] leading-relaxed">
               Walk-in purchase for emergency gaps or medications unavailable online.
             </p>
 
-            <div className="my-4 p-4 rounded-2xl bg-[#f7f7f7] border border-[#ebebeb] flex items-center justify-between">
-              <span className="text-xs font-medium text-[#6a6a6a]">Monthly Meds:</span>
-              <span className="font-mono font-bold text-[#222222] text-lg">
+            <div className="my-4 p-4 rounded-2xl bg-[#0e121a] border border-[#1b2130] flex items-center justify-between">
+              <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
+              <span className="font-mono font-bold text-white text-lg">
                 {offlineGroup.length} item{offlineGroup.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
-          <div className="text-[11px] text-[#6a6a6a] bg-[#f7f7f7] p-3 rounded-xl border border-[#ebebeb]">
+          <div className="text-[11px] text-[#94a3b8] bg-[#0e121a] p-3 rounded-xl border border-[#1b2130]">
             Order cutoff: 1 day before stockout + 2d buffer
           </div>
         </div>
       </div>
 
       {/* Main Procurement Table */}
-      <div className="bg-white border border-[#ebebeb] rounded-3xl p-6 sm:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
+      <div className="bg-[#131722] border border-[#1e2536] rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-[#222222] flex items-center gap-2">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Layers className="h-5 w-5 text-[#ff385c]" />
               <span>30-Day Pack & Strip Calculator</span>
             </h2>
-            <p className="text-xs text-[#6a6a6a] mt-0.5">
+            <p className="text-xs text-[#94a3b8] mt-0.5">
               Calculates exact whole-pack purchase quantities given prescribed daily dose and pack size.
             </p>
           </div>
@@ -170,8 +165,8 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
               onClick={() => setVendorFilter("all")}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 vendorFilter === "all"
-                  ? "bg-[#222222] text-white"
-                  : "bg-[#f7f7f7] text-[#6a6a6a] hover:text-[#222222] border border-[#ebebeb]"
+                  ? "bg-[#ff385c] text-white"
+                  : "bg-[#0e121a] text-[#94a3b8] hover:text-white border border-[#1e2536]"
               }`}
             >
               All Vendors ({medicines.length})
@@ -180,8 +175,8 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
               onClick={() => setVendorFilter("apollo")}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 vendorFilter === "apollo"
-                  ? "bg-[#222222] text-white"
-                  : "bg-[#f7f7f7] text-[#6a6a6a] hover:text-[#222222] border border-[#ebebeb]"
+                  ? "bg-[#ff385c] text-white"
+                  : "bg-[#0e121a] text-[#94a3b8] hover:text-white border border-[#1e2536]"
               }`}
             >
               Apollo ({apolloGroup.length})
@@ -190,8 +185,8 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
               onClick={() => setVendorFilter("mr_med")}
               className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 vendorFilter === "mr_med"
-                  ? "bg-[#222222] text-white"
-                  : "bg-[#f7f7f7] text-[#6a6a6a] hover:text-[#222222] border border-[#ebebeb]"
+                  ? "bg-[#ff385c] text-white"
+                  : "bg-[#0e121a] text-[#94a3b8] hover:text-white border border-[#1e2536]"
               }`}
             >
               Mr. Med ({mrMedGroup.length})
@@ -201,7 +196,7 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f7f7f7] text-[#6a6a6a] uppercase tracking-wider font-bold border-b border-[#ebebeb]">
+            <thead className="bg-[#0e121a] text-[#94a3b8] uppercase tracking-wider font-bold border-b border-[#1b2130]">
               <tr>
                 <th className="py-3 px-4">Medicine & Dose</th>
                 <th className="py-3 px-3 text-center">Daily Rate</th>
@@ -214,44 +209,44 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                 <th className="py-3 px-4 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#ebebeb]">
+            <tbody className="divide-y divide-[#1b2130]">
               {filteredMedicines.map((item) => {
                 const plan = item.monthly_planning;
                 return (
                   <tr
                     key={item.medicine.id}
-                    className="hover:bg-[#f7f7f7] transition-colors group"
+                    className="hover:bg-[#181f2e] transition-colors group"
                   >
                     {/* Name */}
                     <td className="py-4 px-4">
                       <Link
                         href={`/medicines/${item.medicine.id}`}
-                        className="font-bold text-[14px] text-[#222222] hover:text-[#ff385c] transition-colors flex items-center gap-1.5"
+                        className="font-bold text-[14px] text-white hover:text-[#ff385c] transition-colors flex items-center gap-1.5"
                       >
                         <span>{item.medicine.name}</span>
                         {item.medicine.strength && (
-                          <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#f7f7f7] text-[#6a6a6a] font-mono border border-[#ebebeb]">
+                          <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#1c2333] text-[#cbd5e1] font-mono border border-[#2b364e]">
                             {item.medicine.strength}
                           </span>
                         )}
                       </Link>
-                      <span className="text-[11px] text-[#6a6a6a] capitalize">
+                      <span className="text-[11px] text-[#94a3b8] capitalize">
                         {item.medicine.form} • Current Stock: {item.on_hand_stock} {item.medicine.unit_label}
                       </span>
                     </td>
 
                     {/* Daily Rate */}
-                    <td className="py-4 px-3 text-center font-mono font-bold text-[#222222]">
-                      {item.daily_consumption} <span className="text-[10px] text-[#6a6a6a] font-normal">/d</span>
+                    <td className="py-4 px-3 text-center font-mono font-bold text-white">
+                      {item.daily_consumption} <span className="text-[10px] text-[#94a3b8] font-normal">/d</span>
                     </td>
 
                     {/* 30d Units */}
-                    <td className="py-4 px-3 text-center font-mono font-semibold text-[#222222]">
-                      {plan.monthly_units} <span className="text-[10px] text-[#6a6a6a] font-normal">{item.medicine.unit_label}</span>
+                    <td className="py-4 px-3 text-center font-mono font-semibold text-white">
+                      {plan.monthly_units} <span className="text-[10px] text-[#94a3b8] font-normal">{item.medicine.unit_label}</span>
                     </td>
 
                     {/* Pack Size */}
-                    <td className="py-4 px-3 text-center font-mono text-[#6a6a6a]">
+                    <td className="py-4 px-3 text-center font-mono text-[#94a3b8]">
                       {plan.units_per_pack > 1
                         ? `${plan.units_per_pack} ${item.medicine.unit_label}/pk`
                         : "Loose"}
@@ -259,16 +254,16 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
 
                     {/* Packs Needed */}
                     <td className="py-4 px-3 text-center">
-                      <span className="px-3 py-1 rounded-full bg-[#f7f7f7] text-[#222222] border border-[#dddddd] font-mono font-bold text-xs">
+                      <span className="px-3 py-1 rounded-full bg-[#1c2333] text-white border border-[#2b364e] font-mono font-bold text-xs">
                         {plan.packs_needed} pk
                       </span>
                     </td>
 
                     {/* Total Units Purchased */}
-                    <td className="py-4 px-3 text-center font-mono text-[#222222]">
+                    <td className="py-4 px-3 text-center font-mono text-white">
                       {plan.total_units_purchased} {item.medicine.unit_label}
                       {plan.buffer_units > 0 && (
-                        <span className="text-[10px] text-[#16a34a] block font-medium">
+                        <span className="text-[10px] text-[#34d399] block font-medium">
                           (+{plan.buffer_units} surplus)
                         </span>
                       )}
@@ -276,7 +271,7 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
 
                     {/* Recommended Channel */}
                     <td className="py-4 px-4 text-center">
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border capitalize bg-[#f7f7f7] text-[#222222] border-[#ebebeb]">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border capitalize bg-[#0e121a] text-[#cbd5e1] border-[#1b2130]">
                         {plan.recommended_channel.replace("_", " ")}
                       </span>
                     </td>
@@ -287,18 +282,18 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                         <span
                           className={`font-bold ${
                             item.urgency === "CRITICAL"
-                              ? "text-[#c13515]"
+                              ? "text-[#fb7185]"
                               : item.urgency === "ORDER_NOW"
-                              ? "text-[#f97316]"
+                              ? "text-[#fb923c]"
                               : item.urgency === "ORDER_SOON"
-                              ? "text-[#ca8a04]"
-                              : "text-[#16a34a]"
+                              ? "text-[#fde047]"
+                              : "text-[#34d399]"
                           }`}
                         >
-                          {format(parseISO(item.recommended_order_by), "dd MMM yyyy")}
+                          {safeFormatDate(item.recommended_order_by, "dd MMM yyyy")}
                         </span>
                       ) : (
-                        <span className="text-[#929292]">N/A</span>
+                        <span className="text-[#64748b]">N/A</span>
                       )}
                     </td>
 
@@ -306,7 +301,7 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                     <td className="py-4 px-4 text-right">
                       <button
                         onClick={() => setSelectedForRestock(item)}
-                        className="px-4 py-2 bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 text-white font-semibold rounded-full text-xs transition-all shadow-sm"
+                        className="px-4 py-2 bg-[#ff385c] hover:bg-[#e00b41] active:scale-98 text-white font-semibold rounded-full text-xs transition-all shadow-md shadow-[#ff385c]/25"
                       >
                         Order Now
                       </button>

@@ -21,7 +21,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "Total Medicines",
       count: summary.total_medicines,
       icon: Pill,
-      dotColor: "bg-[#222222]",
+      dotColor: "bg-white",
       badge: "Tracked",
     },
     {
@@ -29,7 +29,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "Critical (Buy Offline)",
       count: summary.critical_count,
       icon: AlertOctagon,
-      dotColor: "bg-[#c13515]",
+      dotColor: "bg-[#f43f5e]",
       badge: "Stockout <2d",
     },
     {
@@ -37,7 +37,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "Order Now (Offline)",
       count: summary.order_now_count,
       icon: AlertTriangle,
-      dotColor: "bg-[#f97316]",
+      dotColor: "bg-[#fb923c]",
       badge: "Online Passed",
     },
     {
@@ -45,7 +45,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "Order Soon (Mr. Med)",
       count: summary.order_soon_count,
       icon: Clock,
-      dotColor: "bg-[#eab308]",
+      dotColor: "bg-[#facc15]",
       badge: "Apollo Passed",
     },
     {
@@ -53,7 +53,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "Stock Healthy",
       count: summary.ok_count,
       icon: CheckCircle2,
-      dotColor: "bg-[#10b981]",
+      dotColor: "bg-[#34d399]",
       badge: "Apollo Viable",
     },
     {
@@ -61,7 +61,7 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
       label: "In Transit Orders",
       count: summary.in_transit_orders_count,
       icon: Truck,
-      dotColor: "bg-[#0284c7]",
+      dotColor: "bg-[#38bdf8]",
       badge: "Awaiting",
     },
   ];
@@ -75,21 +75,21 @@ export function StatCards({ summary, activeFilter, onSelectFilter }: StatCardsPr
           <button
             key={card.id}
             onClick={() => onSelectFilter(card.id)}
-            className={`p-4 rounded-2xl bg-white border text-left transition-all cursor-pointer flex flex-col justify-between ${
+            className={`p-4 rounded-2xl bg-[#131722] border text-left transition-all cursor-pointer flex flex-col justify-between shadow-sm ${
               isActive
-                ? "border-[#222222] ring-1 ring-[#222222] shadow-md"
-                : "border-[#ebebeb] hover:border-[#c1c1c1] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                ? "border-[#ff385c] ring-1 ring-[#ff385c] shadow-lg shadow-[#ff385c]/10"
+                : "border-[#1e2536] hover:border-[#313c54]"
             }`}
           >
             <div className="flex items-center justify-between w-full mb-2">
-              <span className="text-[12px] font-medium text-[#6a6a6a] truncate">{card.label}</span>
+              <span className="text-[12px] font-medium text-[#94a3b8] truncate">{card.label}</span>
               <span className={`h-2 w-2 rounded-full ${card.dotColor} shrink-0`} />
             </div>
             <div>
-              <div className="text-[26px] font-bold tracking-tight text-[#222222] font-mono leading-none">
+              <div className="text-[26px] font-bold tracking-tight text-white font-mono leading-none">
                 {card.count}
               </div>
-              <p className="text-[11px] text-[#6a6a6a] mt-1.5 font-medium">{card.badge}</p>
+              <p className="text-[11px] text-[#64748b] mt-1.5 font-medium">{card.badge}</p>
             </div>
           </button>
         );

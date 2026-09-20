@@ -8,47 +8,54 @@
   --color-luxe: #460479;
   --color-plus: #92174d;
   
-  --color-ink: #222222;
-  --color-body: #3f3f3f;
-  --color-muted: #6a6a6a;
-  --color-muted-soft: #929292;
+  --color-canvas: #0c0f17;
+  --color-surface-card: #161b26;
+  --color-surface-soft: #111520;
+  --color-surface-strong: #1c2331;
   
-  --color-hairline: #dddddd;
-  --color-hairline-soft: #ebebeb;
-  --color-border-strong: #c1c1c1;
+  --color-hairline: #222a3a;
+  --color-hairline-soft: #1b2230;
+  --color-border-strong: #2e394e;
   
-  --color-canvas: #ffffff;
-  --color-surface-soft: #f7f7f7;
-  --color-surface-strong: #f2f2f2;
+  --color-ink: #f8fafc;
+  --color-body: #cbd5e1;
+  --color-muted: #94a3b8;
+  --color-muted-soft: #64748b;
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #222222;
+  --background: #0c0f17;
+  --foreground: #f8fafc;
 }
 
 body {
-  background: #ffffff;
-  color: #222222;
+  background: #0c0f17;
+  color: #f8fafc;
   font-family: -apple-system, BlinkMacSystemFont, "Circular", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Airbnb signature card & dropdown shadow */
-.airbnb-shadow {
-  box-shadow: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px 0, rgba(0, 0, 0, 0.08) 0 4px 12px 0;
+/* Airbnb dark card & search shadows */
+.airbnb-dark-card {
+  background: #151a24;
+  border: 1px solid #232b3b;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
 }
 
-.airbnb-shadow-hover:hover {
-  box-shadow: rgba(0, 0, 0, 0.03) 0 0 0 1px, rgba(0, 0, 0, 0.06) 0 4px 12px 0, rgba(0, 0, 0, 0.12) 0 8px 24px 0;
+.airbnb-dark-card-hover:hover {
+  border-color: #38455d;
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.65);
   transform: translateY(-2px);
 }
 
-.airbnb-search-shadow {
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+.airbnb-dark-search {
+  background: #151a24;
+  border: 1px solid #283244;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-.airbnb-search-shadow:hover {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.08);
+.airbnb-dark-search:hover {
+  border-color: #3b4963;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }

@@ -6,9 +6,6 @@ import {
   SlidersHorizontal,
   Plus,
   Pill,
-  ArrowUpDown,
-  Filter,
-  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import { CalculatedMedicineState, DashboardSummary } from "@/lib/types";
@@ -83,12 +80,12 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         onRestockClick={(item) => setSelectedForRestock(item)}
       />
 
-      {/* Airbnb Signature Pill Search Bar */}
-      <div className="bg-white rounded-full border border-[#dddddd] h-16 p-2 airbnb-search-shadow flex items-center justify-between transition-all hover:border-[#c1c1c1]">
+      {/* Airbnb Signature Dark Pill Search Bar */}
+      <div className="bg-[#131722] rounded-full border border-[#222a3a] h-16 p-2 shadow-lg shadow-black/30 flex items-center justify-between transition-all hover:border-[#333e54]">
         {/* Segment 1: Search Name */}
         <div className="flex-1 flex items-center px-4 sm:px-6">
           <div className="w-full">
-            <span className="block text-[11px] font-bold text-[#222222] uppercase tracking-wider">
+            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
               Search Medicine
             </span>
             <input
@@ -96,71 +93,71 @@ export function DashboardView({ initialData }: DashboardViewProps) {
               placeholder="Thyronorm, Telma 40, Glycomet..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-[13px] text-[#222222] placeholder:text-[#929292] focus:outline-none -mt-0.5 font-medium"
+              className="w-full bg-transparent text-[13px] text-white placeholder:text-[#64748b] focus:outline-none -mt-0.5 font-medium"
             />
           </div>
         </div>
 
         {/* Divider hairline */}
-        <div className="hidden sm:block h-8 w-[1px] bg-[#ebebeb]" />
+        <div className="hidden sm:block h-8 w-[1px] bg-[#222a3a]" />
 
         {/* Segment 2: Sort */}
         <div className="hidden sm:flex items-center px-6">
           <div>
-            <span className="block text-[11px] font-bold text-[#222222] uppercase tracking-wider">
+            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
               Sort By
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-transparent text-[13px] text-[#3f3f3f] font-medium focus:outline-none cursor-pointer -mt-0.5"
+              className="bg-transparent text-[13px] text-[#cbd5e1] font-medium focus:outline-none cursor-pointer -mt-0.5"
             >
-              <option value="urgency">Urgency (Critical first)</option>
-              <option value="days_left">Days Left (Lowest)</option>
-              <option value="stock">On-hand Stock</option>
-              <option value="name">Name (A-Z)</option>
+              <option value="urgency" className="bg-[#131722] text-white">Urgency (Critical first)</option>
+              <option value="days_left" className="bg-[#131722] text-white">Days Left (Lowest)</option>
+              <option value="stock" className="bg-[#131722] text-white">On-hand Stock</option>
+              <option value="name" className="bg-[#131722] text-white">Name (A-Z)</option>
             </select>
           </div>
         </div>
 
         {/* Divider hairline */}
-        <div className="hidden md:block h-8 w-[1px] bg-[#ebebeb]" />
+        <div className="hidden md:block h-8 w-[1px] bg-[#222a3a]" />
 
         {/* Segment 3: Filter */}
         <div className="hidden md:flex items-center px-6">
           <div>
-            <span className="block text-[11px] font-bold text-[#222222] uppercase tracking-wider">
+            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
               Filter Status
             </span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-[13px] text-[#3f3f3f] font-medium focus:outline-none cursor-pointer -mt-0.5"
+              className="bg-transparent text-[13px] text-[#cbd5e1] font-medium focus:outline-none cursor-pointer -mt-0.5"
             >
-              <option value="all">All Medicines</option>
-              <option value="CRITICAL">Critical Only</option>
-              <option value="ORDER_NOW">Order Now (Offline)</option>
-              <option value="ORDER_SOON">Order Soon (Mr. Med)</option>
-              <option value="OK">Healthy Stock (OK)</option>
-              <option value="IN_TRANSIT">In Transit</option>
+              <option value="all" className="bg-[#131722] text-white">All Medicines</option>
+              <option value="CRITICAL" className="bg-[#131722] text-white">Critical Only</option>
+              <option value="ORDER_NOW" className="bg-[#131722] text-white">Order Now (Offline)</option>
+              <option value="ORDER_SOON" className="bg-[#131722] text-white">Order Soon (Mr. Med)</option>
+              <option value="OK" className="bg-[#131722] text-white">Healthy Stock (OK)</option>
+              <option value="IN_TRANSIT" className="bg-[#131722] text-white">In Transit</option>
             </select>
           </div>
         </div>
 
         {/* Search Orb (Airbnb signature Rausch orb) */}
-        <div className="h-12 w-12 rounded-full bg-[#ff385c] hover:bg-[#e00b41] text-white flex items-center justify-center shrink-0 shadow-md transition-transform active:scale-95 cursor-pointer">
+        <div className="h-12 w-12 rounded-full bg-[#ff385c] hover:bg-[#e00b41] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#ff385c]/30 transition-transform active:scale-95 cursor-pointer">
           <Search className="h-4 w-4 stroke-[2.5]" />
         </div>
       </div>
 
       {/* Grid of Medicines */}
       {filteredMedicines.length === 0 ? (
-        <div className="rounded-3xl border border-[#ebebeb] bg-white p-12 text-center shadow-sm">
-          <div className="mx-auto h-14 w-14 rounded-full bg-[#f7f7f7] flex items-center justify-center text-[#6a6a6a] mb-3">
+        <div className="rounded-3xl border border-[#1e2536] bg-[#131722] p-12 text-center shadow-lg">
+          <div className="mx-auto h-14 w-14 rounded-full bg-[#1c2333] flex items-center justify-center text-[#94a3b8] mb-3">
             <Pill className="h-7 w-7 text-[#ff385c]" />
           </div>
-          <h3 className="text-lg font-bold text-[#222222]">No medicines found</h3>
-          <p className="text-[13px] text-[#6a6a6a] max-w-sm mx-auto mt-1">
+          <h3 className="text-lg font-bold text-white">No medicines found</h3>
+          <p className="text-[13px] text-[#94a3b8] max-w-sm mx-auto mt-1">
             {searchQuery || statusFilter !== "all"
               ? "No medicines match your current filter or search terms."
               : "Get started by adding your prescription medicines to forecast lead times."}
@@ -168,7 +165,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
           <div className="mt-5">
             <Link
               href="/medicines/new"
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] rounded-full shadow-sm transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-[14px] font-semibold text-white bg-[#ff385c] hover:bg-[#e00b41] rounded-full shadow-md transition-all"
             >
               <Plus className="h-4 w-4 stroke-[2.5]" />
               <span>Add First Medicine</span>
