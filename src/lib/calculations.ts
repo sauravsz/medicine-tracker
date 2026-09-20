@@ -347,19 +347,27 @@ export function computeMedicineState(
   const totalUnitsPurchased = packsNeeded * unitsPerPack;
   const bufferUnits = totalUnitsPurchased - monthlyUnitsNeeded;
 
+  const apolloAvail = Boolean(deadlines.find((d) => d.channel === "apollo")?.available);
+  const mrMedAvail = Boolean(deadlines.find((d) => d.channel === "mr_med")?.available);
+  const offlineAvail = Boolean(deadlines.find((d) => d.channel === "offline")?.available);
+
+  let defaultProcurementChan: ChannelType = "apollo";
+  if (apolloAvail) {
+    defaultProcurementChan = "apollo";
+  } else if (mrMedAvail) {
+    defaultProcurementChan = "mr_med";
+  } else if (offlineAvail) {
+    defaultProcurementChan = "offline";
+  }
+
   const monthlyPlanning: MonthlyRequirement = {
-    daily_consumption: dailyConsumption,
+    daily_consumption: Math.round(dailyConsumption * 100) / 100,
     monthly_units: monthlyUnitsNeeded,
     units_per_pack: unitsPerPack,
     packs_needed: packsNeeded,
     total_units_purchased: totalUnitsPurchased,
     buffer_units: Math.round(bufferUnits * 10) / 10,
-    recommended_channel:
-      apolloDeadline && apolloDeadline.available
-        ? "apollo"
-        : mrMedDeadline && mrMedDeadline.available
-        ? "mr_med"
-        : "offline",
+    recommended_channel: defaultProcurementChan,
     estimated_cost: null,
   };
 
@@ -369,7 +377,7 @@ export function computeMedicineState(
     channel_configs: channelConfigs,
     restocks,
     adjustments,
-    daily_consumption: dailyConsumption,
+    daily_consumption: Math.round(dailyConsumption * 100) / 100,
     on_hand_stock: onHandStock,
     days_remaining: daysRemaining,
     stock_out_date: stockOutDate,
