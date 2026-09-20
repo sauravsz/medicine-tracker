@@ -9,13 +9,15 @@ import {
   Pill,
 } from "lucide-react";
 import Link from "next/link";
-import { CalculatedMedicineState, DashboardSummary } from "@/lib/types";
+import { AICommandPayload, CalculatedMedicineState, DashboardSummary } from "@/lib/types";
 import { StatCards } from "./StatCards";
 import { UrgentAlertBanner } from "./UrgentAlertBanner";
 import { MedicineCard } from "./MedicineCard";
 import { MedicineTableView } from "./MedicineTableView";
 import { QuickRestockModal } from "./QuickRestockModal";
 import { QuickAdjustModal } from "./QuickAdjustModal";
+import { AIAssistantBar } from "./AIAssistantBar";
+import { AIConfirmationModal } from "./AIConfirmationModal";
 
 interface DashboardViewProps {
   initialData: DashboardSummary;
@@ -32,6 +34,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
 
   const [selectedForRestock, setSelectedForRestock] = useState<CalculatedMedicineState | null>(null);
   const [selectedForAdjust, setSelectedForAdjust] = useState<CalculatedMedicineState | null>(null);
+  const [pendingAICommand, setPendingAICommand] = useState<AICommandPayload | null>(null);
 
   // Filter & sort logic
   const filteredMedicines = useMemo(() => {
@@ -73,7 +76,10 @@ export function DashboardView({ initialData }: DashboardViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Filter Chips & View Switcher */}
+      {/* 1. AI Natural Language Voice/Text Command Bar */}
+      <AIAssistantBar onParsedCommand={(payload) => setPendingAICommand(payload)} />
+
+      {/* 2. Top Filter Chips & View Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <StatCards
           summary={summary}
@@ -104,20 +110,20 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         </div>
       </div>
 
-      {/* Urgent Alert Banner */}
+      {/* 3. Urgent Alert Banner */}
       <UrgentAlertBanner
         medicines={medicines}
         onRestockClick={(item) => setSelectedForRestock(item)}
       />
 
-      {/* Liquid Glass Search Bar */}
+      {/* 4. Liquid Glass Search Bar */}
       <div className="liquid-glass-panel rounded-full h-16 p-2 shadow-2xl flex items-center justify-between transition-all">
         {/* Search Input */}
         <div className="flex-1 flex items-center px-4 sm:px-6">
           <Search className="h-4 w-4 text-[#94a3b8] mr-3 shrink-0" />
           <input
             type="text"
-            placeholder="Search medicine by name, dose, or strength..."
+            placeholder="Filter medicine by name, dose, or strength..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-transparent text-[13px] text-white placeholder:text-[#64748b] focus:outline-none font-medium"
@@ -143,7 +149,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* 5. Main Content: Grid or Table View */}
       {filteredMedicines.length === 0 ? (
         <div className="rounded-3xl liquid-glass-panel p-12 text-center shadow-2xl">
           <div className="mx-auto h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center text-white mb-3 border border-white/15">
@@ -184,7 +190,17 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         />
       )}
 
-      {/* Modals */}
+      {/* AI Intent Confirmation Modal */}
+      {pendingAICommand && (
+        <AIConfirmationModal
+          payload={pendingAICommand}
+          medicines={medicines}
+          onClose={() => setPendingAICommand(null)}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
+
+      {/* Manual Modals */}
       {selectedForRestock && (
         <QuickRestockModal
           item={selectedForRestock}

@@ -179,3 +179,49 @@ export interface DashboardSummary {
   summary: DashboardStats;
   medicines: CalculatedMedicineState[];
 }
+
+export interface AICommandPayload {
+  intent: "LOG_RESTOCK" | "AUDIT_COUNT" | "UPDATE_SCHEDULE" | "ADD_MEDICINE" | "UNKNOWN";
+  medicine_id?: string | null;
+  matched_name: string;
+  confidence: number;
+  summary_explanation: string;
+  restock?: {
+    channel: ChannelType;
+    pack_count?: number | null;
+    units_per_pack: number;
+    total_units_added: number;
+    cost?: number | null;
+    is_delivered: boolean;
+    ordered_date: string;
+    notes?: string | null;
+  };
+  audit?: {
+    exact_units_on_hand: number;
+    reason: StockAdjustment["reason"];
+    notes?: string | null;
+  };
+  schedule_update?: {
+    schedules: Array<{
+      time_of_day: string;
+      quantity: number;
+      interval_days: number;
+      instructions?: string | null;
+    }>;
+  };
+  new_medicine?: {
+    name: string;
+    strength?: string | null;
+    form: MedicineForm;
+    unit_label: string;
+    units_per_pack: number;
+    baseline_stock: number;
+    channel: ChannelType;
+    schedules: Array<{
+      time_of_day: string;
+      quantity: number;
+      interval_days: number;
+      instructions?: string | null;
+    }>;
+  };
+}
