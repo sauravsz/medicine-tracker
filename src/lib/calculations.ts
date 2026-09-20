@@ -66,9 +66,34 @@ export const CHANNEL_METADATA: Record<
   },
 };
 
+export function safeParseDate(val: unknown): Date {
+  if (!val) return new Date();
+  if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
+  if (typeof val === "string") {
+    try {
+      const clean = val.split("T")[0].split(" ")[0];
+      const parsed = parseISO(clean);
+      if (!isNaN(parsed.getTime())) return parsed;
+    } catch {}
+    try {
+      const fallback = new Date(val);
+      if (!isNaN(fallback.getTime())) return fallback;
+    } catch {}
+  }
+  return new Date();
+}
+
+export function safeFormatDate(val: unknown, pattern: string = "yyyy-MM-dd"): string {
+  try {
+    const d = safeParseDate(val);
+    return format(d, pattern);
+  } catch {
+    return format(new Date(), pattern);
+  }
+}
+
 /**
  * Calculates total daily consumption for a medicine from its dose schedules.
- * Supports fractional doses (e.g. 0.5 tablet) and interval schedules (1 = daily, 7 = weekly).
  */
 export function calculateDailyConsumption(schedules: DoseSchedule[]): number {
   if (!schedules || schedules.length === 0) return 0;
@@ -91,8 +116,8 @@ export function computeMedicineState(
   settings: AppSettings = DEFAULT_SETTINGS,
   referenceDate: Date = new Date()
 ): CalculatedMedicineState {
-  const todayStr = format(referenceDate, "yyyy-MM-dd");
-  const baselineDate = parseISO(medicine.baseline_date || todayStr);
+  const todayStr = safeFormatDate(referenceDate, "yyyy-MM-dd");
+  const baselineDate = safeParseDate(medicine.baseline_date || todayStr);
 
   const dailyConsumption = calculateDailyConsumption(schedules);
   const safetyBuffer =
@@ -106,12 +131,12 @@ export function computeMedicineState(
 
   // 2. Sum received restocks recorded on or after the baseline date
   const receivedRestocksSinceBaseline = restocks
-    .filter((r) => r.received_date && !isBefore(parseISO(r.received_date), baselineDate))
+    .filter((r) => r.received_date && !isBefore(safeParseDate(r.received_date), baselineDate))
     .reduce((sum, r) => sum + (Number(r.quantity_added) || 0), 0);
 
   // 3. Sum manual adjustments recorded on or after baseline date
   const adjustmentsSinceBaseline = adjustments
-    .filter((a) => !isBefore(parseISO(a.date), baselineDate))
+    .filter((a) => !isBefore(safeParseDate(a.date), baselineDate))
     .reduce((sum, a) => sum + (Number(a.delta) || 0), 0);
 
   // 4. Current physical on-hand stock
@@ -134,7 +159,7 @@ export function computeMedicineState(
   let latestEta: string | null = null;
   if (inTransitOrders.length > 0) {
     const etas = inTransitOrders
-      .map((o) => o.expected_arrival_date || o.ordered_date)
+      .map((o) => safeFormatDate(o.expected_arrival_date || o.ordered_date))
       .sort();
     earliestEta = etas[0] || null;
     latestEta = etas[etas.length - 1] || null;
@@ -143,22 +168,19 @@ export function computeMedicineState(
   // 6. Days remaining & stockout dates
   const daysRemaining =
     dailyConsumption > 0 ? Math.floor(onHandStock / dailyConsumption) : 999;
-  const stockOutDate = format(addDays(referenceDate, daysRemaining), "yyyy-MM-dd");
+  const stockOutDate = safeFormatDate(addDays(referenceDate, daysRemaining));
 
   const effectiveStock = onHandStock + inTransitUnits;
   const effectiveDaysRemaining =
     dailyConsumption > 0 ? Math.floor(effectiveStock / dailyConsumption) : 999;
-  const effectiveStockOutDate = format(
-    addDays(referenceDate, effectiveDaysRemaining),
-    "yyyy-MM-dd"
-  );
+  const effectiveStockOutDate = safeFormatDate(addDays(referenceDate, effectiveDaysRemaining));
 
   // Check if in-transit order arrives before physical stock-out
   const inTransitCovers = Boolean(
     inTransitOrders.length > 0 &&
       earliestEta &&
-      (isBefore(parseISO(earliestEta), parseISO(stockOutDate)) ||
-        isSameDay(parseISO(earliestEta), parseISO(stockOutDate)))
+      (isBefore(safeParseDate(earliestEta), safeParseDate(stockOutDate)) ||
+        isSameDay(safeParseDate(earliestEta), safeParseDate(stockOutDate)))
   );
 
   const inTransitSummary: InTransitSummary = {
@@ -192,7 +214,7 @@ export function computeMedicineState(
     // Formula: order_by_date = stock_out_date - lead_time_max - safety_buffer
     const totalLeadAndBuffer = leadMax + safetyBuffer;
     const daysUntilOrderBy = daysRemaining - totalLeadAndBuffer;
-    const orderByDate = format(addDays(referenceDate, daysUntilOrderBy), "yyyy-MM-dd");
+    const orderByDate = safeFormatDate(addDays(referenceDate, daysUntilOrderBy));
     const isViableToday = daysUntilOrderBy >= 0;
 
     return {
@@ -209,14 +231,12 @@ export function computeMedicineState(
   });
 
   // 8. Urgency Status & Action Resolver
-  // Sort available channels by lead_time_max descending (Apollo -> Mr Med -> Offline)
   const availableDeadlines = deadlines
     .filter((d) => d.available)
     .sort((a, b) => b.lead_time_max - a.lead_time_max);
 
   const apolloDeadline = deadlines.find((d) => d.channel === "apollo");
   const mrMedDeadline = deadlines.find((d) => d.channel === "mr_med");
-  const offlineDeadline = deadlines.find((d) => d.channel === "offline");
 
   let urgency: UrgencyStatus = "OK";
   let urgencyLabel = "OK — Stock Healthy";
@@ -253,23 +273,19 @@ export function computeMedicineState(
     recommendedAction = "Enable at least one purchase channel in settings.";
     recommendedChannel = "none";
   } else {
-    // Check slowest available channel down to fastest
     const slowestAvailable = availableDeadlines[0];
-    const fastestAvailable = availableDeadlines[availableDeadlines.length - 1];
 
     if (slowestAvailable.is_viable_today) {
-      // Slowest channel (e.g. Apollo) is still viable
       urgency = "OK";
       urgencyLabel = "OK — Reorder on schedule";
       urgencyColor = "emerald";
       recommendedChannel = slowestAvailable.channel;
       recommendedOrderBy = slowestAvailable.order_by_date;
-      recommendedAction = `Order via ${slowestAvailable.channel_name} by ${format(
-        parseISO(slowestAvailable.order_by_date),
+      recommendedAction = `Order via ${slowestAvailable.channel_name} by ${safeFormatDate(
+        slowestAvailable.order_by_date,
         "dd MMM yyyy"
       )} (${slowestAvailable.days_until_deadline}d buffer remaining).`;
     } else {
-      // Find the slowest channel that is still viable today
       const firstViableChannel = availableDeadlines.find((d) => d.is_viable_today);
 
       if (firstViableChannel) {
@@ -279,8 +295,8 @@ export function computeMedicineState(
           urgencyColor = "amber";
           recommendedChannel = "mr_med";
           recommendedOrderBy = firstViableChannel.order_by_date;
-          recommendedAction = `Apollo window passed. Order via Mr. Med by ${format(
-            parseISO(firstViableChannel.order_by_date),
+          recommendedAction = `Apollo window passed. Order via Mr. Med by ${safeFormatDate(
+            firstViableChannel.order_by_date,
             "dd MMM yyyy"
           )}.`;
         } else if (firstViableChannel.channel === "offline") {
@@ -289,8 +305,8 @@ export function computeMedicineState(
           urgencyColor = "orange";
           recommendedChannel = "offline";
           recommendedOrderBy = firstViableChannel.order_by_date;
-          recommendedAction = `Online delivery lead times too long. Purchase from Local Pharmacy by ${format(
-            parseISO(firstViableChannel.order_by_date),
+          recommendedAction = `Online delivery lead times too long. Purchase from Local Pharmacy by ${safeFormatDate(
+            firstViableChannel.order_by_date,
             "dd MMM yyyy"
           )}.`;
         } else {
@@ -299,13 +315,12 @@ export function computeMedicineState(
           urgencyColor = "amber";
           recommendedChannel = firstViableChannel.channel;
           recommendedOrderBy = firstViableChannel.order_by_date;
-          recommendedAction = `Order via ${firstViableChannel.channel_name} by ${format(
-            parseISO(firstViableChannel.order_by_date),
+          recommendedAction = `Order via ${firstViableChannel.channel_name} by ${safeFormatDate(
+            firstViableChannel.order_by_date,
             "dd MMM yyyy"
           )}.`;
         }
       } else {
-        // No channels are viable today (past offline cutoff or stock running out)
         if (inTransitCovers) {
           urgency = "ORDER_SOON";
           urgencyLabel = "Refill in Transit";
@@ -324,7 +339,7 @@ export function computeMedicineState(
     }
   }
 
-  // 9. Monthly Requirement Calculations (30-day projection & procurement planning)
+  // 9. Monthly Requirement Calculations
   const monthlyUnitsNeeded = Math.round(dailyConsumption * 30 * 10) / 10;
   const unitsPerPack = Math.max(1, Number(medicine.units_per_pack) || 1);
   const packsNeeded =
@@ -397,7 +412,7 @@ export function generateStockTrajectory(
 
   for (let i = 0; i <= daysCount; i++) {
     const d = addDays(today, i);
-    const dateStr = format(d, "MMM dd");
+    const dateStr = safeFormatDate(d, "MMM dd");
     const stockAtDay = Math.max(0, Math.round((on_hand_stock - daily_consumption * i) * 10) / 10);
     points.push({
       dayIndex: i,

@@ -13,6 +13,8 @@ import {
 import {
   computeMedicineState,
   DEFAULT_SETTINGS,
+  safeParseDate,
+  safeFormatDate,
 } from "../calculations";
 import path from "path";
 import fs from "fs";
@@ -22,12 +24,28 @@ let pgClient: postgres.Sql | null = null;
 let isPostgres = false;
 let initialized = false;
 
+function toIsoDateString(val: unknown): string {
+  if (!val) return format(new Date(), "yyyy-MM-dd");
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return format(new Date(), "yyyy-MM-dd");
+    return format(val, "yyyy-MM-dd");
+  }
+  const s = String(val).trim();
+  if (s.includes("T")) return s.split("T")[0];
+  try {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return format(d, "yyyy-MM-dd");
+  } catch {}
+  return s;
+}
+
 function getClients() {
   const dbUrl =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL_NON_POOLING;
+
   if (dbUrl && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://"))) {
     isPostgres = true;
     if (!pgClient) {
@@ -366,7 +384,7 @@ export async function getMedicines(): Promise<Medicine[]> {
     unit_label: String(row.unit_label || "tablets"),
     units_per_pack: Number(row.units_per_pack || 1),
     baseline_stock: Number(row.baseline_stock || 0),
-    baseline_date: String(row.baseline_date).split("T")[0],
+    baseline_date: toIsoDateString(row.baseline_date),
     safety_buffer_days:
       row.safety_buffer_days !== null && row.safety_buffer_days !== undefined
         ? Number(row.safety_buffer_days)
@@ -397,7 +415,7 @@ export async function getMedicineById(id: string): Promise<{
     unit_label: String(row.unit_label || "tablets"),
     units_per_pack: Number(row.units_per_pack || 1),
     baseline_stock: Number(row.baseline_stock || 0),
-    baseline_date: String(row.baseline_date).split("T")[0],
+    baseline_date: toIsoDateString(row.baseline_date),
     safety_buffer_days:
       row.safety_buffer_days !== null && row.safety_buffer_days !== undefined
         ? Number(row.safety_buffer_days)
@@ -439,9 +457,9 @@ export async function getMedicineById(id: string): Promise<{
     pack_count: r.pack_count !== null ? Number(r.pack_count) : null,
     units_per_pack: r.units_per_pack !== null ? Number(r.units_per_pack) : null,
     quantity_added: Number(r.quantity_added),
-    ordered_date: String(r.ordered_date).split("T")[0],
-    expected_arrival_date: r.expected_arrival_date ? String(r.expected_arrival_date).split("T")[0] : null,
-    received_date: r.received_date ? String(r.received_date).split("T")[0] : null,
+    ordered_date: toIsoDateString(r.ordered_date),
+    expected_arrival_date: r.expected_arrival_date ? toIsoDateString(r.expected_arrival_date) : null,
+    received_date: r.received_date ? toIsoDateString(r.received_date) : null,
     cost: r.cost !== null ? Number(r.cost) : null,
     notes: r.notes ? String(r.notes) : null,
     created_at: String(r.created_at),
@@ -453,7 +471,7 @@ export async function getMedicineById(id: string): Promise<{
     delta: Number(a.delta),
     reason: a.reason as StockAdjustment["reason"],
     notes: a.notes ? String(a.notes) : null,
-    date: String(a.date).split("T")[0],
+    date: toIsoDateString(a.date),
     created_at: String(a.created_at),
   }));
 
