@@ -9,12 +9,6 @@ const fraunces = localFont({
   display: "swap",
 });
 
-const newYork = localFont({
-  src: "../fonts/new-york-large_regular.ttf",
-  variable: "--font-new-york",
-  display: "swap",
-});
-
 export const metadata: Metadata = {
   title: "MedTrack — Multi-Channel Medicine System",
   description:
@@ -29,9 +23,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark h-full bg-[#090c14] text-white antialiased selection:bg-[#ff385c] selection:text-white ${fraunces.variable} ${newYork.variable}`}
+      className={`dark h-full bg-[#090c14] text-white antialiased selection:bg-[#ff385c] selection:text-white ${fraunces.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-[#090c14] text-white relative font-serif-body">
+      <body className="min-h-full flex flex-col bg-[#090c14] text-white relative">
         <AmbientBackground />
         <div className="relative z-10 flex-1 flex flex-col">
           {children}

@@ -2,7 +2,7 @@
 
 @theme {
   --font-serif-display: var(--font-fraunces), "Fraunces", Georgia, serif;
-  --font-serif-body: var(--font-new-york), "New York", Georgia, serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Circular", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
 
   --color-rausch: #ff385c;
   --color-rausch-active: #e00b41;
@@ -34,14 +34,14 @@
 body {
   background: #090c14;
   color: #ffffff;
-  font-family: var(--font-new-york), -apple-system, BlinkMacSystemFont, Georgia, serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Circular", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, .font-display {
-  font-family: var(--font-fraunces), serif;
+  font-family: var(--font-fraunces), "Fraunces", Georgia, serif;
   letter-spacing: -0.015em;
 }
 
@@ -123,7 +123,6 @@ h1, h2, h3, h4, .font-display {
    SWIFTUI PURPOSEFUL SPRING ANIMATIONS
    ========================================================================== */
 
-/* Interactive Tap Physics */
 .spring-tap {
   transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
@@ -132,7 +131,6 @@ h1, h2, h3, h4, .font-display {
   transform: scale(0.95);
 }
 
-/* Liquid Primary CTA Button */
 .liquid-btn-primary {
   background: linear-gradient(135deg, #ff385c 0%, #e00b41 100%);
   color: #ffffff;
@@ -156,7 +154,6 @@ h1, h2, h3, h4, .font-display {
   box-shadow: 0 2px 8px rgba(255, 56, 92, 0.35);
 }
 
-/* Fluid Ambient Light Keyframes */
 @keyframes ambientFloat1 {
   0%, 100% { transform: translate(0px, 0px) scale(1); }
   50% { transform: translate(60px, -40px) scale(1.15); }
@@ -184,7 +181,6 @@ h1, h2, h3, h4, .font-display {
   animation: ambientFloat3 26s ease-in-out infinite;
 }
 
-/* Staggered Spring Reveal */
 @keyframes springCardIn {
   from {
     opacity: 0;
@@ -200,7 +196,6 @@ h1, h2, h3, h4, .font-display {
   animation: springCardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Pulse Glow Keyframes for Urgency */
 @keyframes pulseGlowRed {
   0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
   50% { box-shadow: 0 0 16px 4px rgba(244, 63, 94, 0.6); }
