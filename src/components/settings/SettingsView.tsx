@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import {
   Settings as SettingsIcon,
   Bell,
@@ -40,6 +40,28 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   const [testCronResult, setTestCronResult] = useState<string | null>(null);
   const [testAiResult, setTestAiResult] = useState<string | null>(null);
 
+  // 1. Load client-side browser storage on mount
+  useEffect(() => {
+    try {
+      const gKey = localStorage.getItem("medtrack_groq_api_key");
+      const gModel = localStorage.getItem("medtrack_groq_model");
+      const oKey = localStorage.getItem("medtrack_ollama_api_key");
+      const oUrl = localStorage.getItem("medtrack_ollama_base_url");
+      const oModel = localStorage.getItem("medtrack_ollama_model");
+      const prov = localStorage.getItem("medtrack_ai_provider");
+
+      setSettings((prev) => ({
+        ...prev,
+        groq_api_key: gKey !== null ? gKey : prev.groq_api_key,
+        groq_model: gModel !== null ? gModel : (prev.groq_model || "openai/gpt-oss-120b"),
+        ollama_api_key: oKey !== null ? oKey : prev.ollama_api_key,
+        ollama_base_url: oUrl !== null ? oUrl : (prev.ollama_base_url || "https://ollama.com"),
+        ollama_model: oModel !== null ? oModel : (prev.ollama_model || "ollamacloud/gemma4:31b"),
+        ai_provider: (prov as AppSettings["ai_provider"]) || prev.ai_provider || "groq",
+      }));
+    } catch {}
+  }, []);
+
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlSchema);
     setCopiedSql(true);
@@ -48,26 +70,47 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 2. Write API keys to browser storage immediately
+    try {
+      if (settings.groq_api_key !== undefined) {
+        localStorage.setItem("medtrack_groq_api_key", settings.groq_api_key || "");
+      }
+      if (settings.groq_model) {
+        localStorage.setItem("medtrack_groq_model", settings.groq_model);
+      }
+      if (settings.ollama_api_key !== undefined) {
+        localStorage.setItem("medtrack_ollama_api_key", settings.ollama_api_key || "");
+      }
+      if (settings.ollama_base_url) {
+        localStorage.setItem("medtrack_ollama_base_url", settings.ollama_base_url);
+      }
+      if (settings.ollama_model) {
+        localStorage.setItem("medtrack_ollama_model", settings.ollama_model);
+      }
+      if (settings.ai_provider) {
+        localStorage.setItem("medtrack_ai_provider", settings.ai_provider);
+      }
+    } catch {}
+
+    // 3. Save standard settings to server
     startTransition(async () => {
-      await updateSettingsAction({
-        default_apollo_lead_min: Number(settings.default_apollo_lead_min),
-        default_apollo_lead_max: Number(settings.default_apollo_lead_max),
-        default_mr_med_lead_min: Number(settings.default_mr_med_lead_min),
-        default_mr_med_lead_max: Number(settings.default_mr_med_lead_max),
-        default_offline_lead_min: Number(settings.default_offline_lead_min),
-        default_offline_lead_max: Number(settings.default_offline_lead_max),
-        default_safety_buffer_days: Number(settings.default_safety_buffer_days),
-        app_passcode: settings.app_passcode?.trim() || null,
-        reminder_email: settings.reminder_email?.trim() || null,
-        reminder_time: settings.reminder_time || "08:00",
-        reminders_enabled: settings.reminders_enabled,
-        ai_provider: settings.ai_provider || "groq",
-        groq_api_key: settings.groq_api_key?.trim() || null,
-        groq_model: settings.groq_model?.trim() || "openai/gpt-oss-120b",
-        ollama_api_key: settings.ollama_api_key?.trim() || null,
-        ollama_base_url: settings.ollama_base_url?.trim() || "https://ollama.com",
-        ollama_model: settings.ollama_model?.trim() || "ollamacloud/gemma4:31b",
-      });
+      try {
+        await updateSettingsAction({
+          default_apollo_lead_min: Number(settings.default_apollo_lead_min),
+          default_apollo_lead_max: Number(settings.default_apollo_lead_max),
+          default_mr_med_lead_min: Number(settings.default_mr_med_lead_min),
+          default_mr_med_lead_max: Number(settings.default_mr_med_lead_max),
+          default_offline_lead_min: Number(settings.default_offline_lead_min),
+          default_offline_lead_max: Number(settings.default_offline_lead_max),
+          default_safety_buffer_days: Number(settings.default_safety_buffer_days),
+          app_passcode: settings.app_passcode?.trim() || null,
+          reminder_email: settings.reminder_email?.trim() || null,
+          reminder_time: settings.reminder_time || "08:00",
+          reminders_enabled: settings.reminders_enabled,
+        });
+      } catch {}
+
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     });
@@ -76,10 +119,22 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   const handleTestAi = async () => {
     setTestAiResult("Testing natural language intent extraction...");
     try {
+      const clientConfig = {
+        groq_api_key: settings.groq_api_key || undefined,
+        groq_model: settings.groq_model || undefined,
+        ollama_api_key: settings.ollama_api_key || undefined,
+        ollama_base_url: settings.ollama_base_url || undefined,
+        ollama_model: settings.ollama_model || undefined,
+        ai_provider: settings.ai_provider || undefined,
+      };
+
       const res = await fetch("/api/ai/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: "Bought 4 strips of Telma LN 40 from Apollo for 480" }),
+        body: JSON.stringify({
+          prompt: "Bought 4 strips of Telma LN 40 from Apollo for 480",
+          ...clientConfig,
+        }),
       });
       const json = await res.json();
       if (json.success && json.payload) {
@@ -124,17 +179,24 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           className="inline-flex items-center gap-2 px-7 py-2.5 text-sm font-semibold liquid-btn-primary rounded-full shadow-lg transition-all spring-tap disabled:opacity-50"
         >
           <Check className="h-4 w-4 stroke-[2.5]" />
-          <span>{isPending ? "Saving..." : saveSuccess ? "Saved!" : "Save Settings"}</span>
+          <span>{isPending ? "Saving..." : saveSuccess ? "Saved to Browser!" : "Save Settings"}</span>
         </button>
       </div>
 
-      {/* 1. Groq & Ollama Cloud AI Settings */}
+      {/* 1. Groq & Ollama Cloud AI Settings (Browser Storage) */}
       <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
-        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
-          <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
-            <Sparkles className="h-5 w-5" />
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">AI Engine (Saved in Browser)</h2>
+            </div>
           </div>
-          <h2 className="text-base font-bold text-white tracking-tight">AI Engine</h2>
+          <span className="text-[10px] font-mono text-[#34d399] px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 font-bold">
+            Local Storage Secure
+          </span>
         </div>
 
         <div className="space-y-4">

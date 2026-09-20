@@ -171,13 +171,7 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
         app_passcode = ?,
         reminder_email = ?,
         reminder_time = ?,
-        reminders_enabled = ?,
-        ai_provider = ?,
-        groq_api_key = ?,
-        groq_model = ?,
-        ollama_api_key = ?,
-        ollama_base_url = ?,
-        ollama_model = ?
+        reminders_enabled = ?
       WHERE id = 1;
     `,
     [
@@ -192,14 +186,9 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
       merged.reminder_email || null,
       merged.reminder_time,
       merged.reminders_enabled ? 1 : 0,
-      merged.ai_provider || "groq",
-      merged.groq_api_key || null,
-      merged.groq_model || "llama-3.3-70b-versatile",
-      merged.ollama_api_key || null,
-      merged.ollama_base_url || "https://ollama.com",
-      merged.ollama_model || "llama3.3",
     ]
   );
+
   return merged;
 }
 

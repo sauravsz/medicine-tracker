@@ -72,10 +72,26 @@ export function AIAssistantBar({ onParsedCommand }: AIAssistantBarProps) {
 
     startTransition(async () => {
       try {
+        let clientConfig: Record<string, string> = {};
+        try {
+          const gKey = localStorage.getItem("medtrack_groq_api_key");
+          const gModel = localStorage.getItem("medtrack_groq_model");
+          const oKey = localStorage.getItem("medtrack_ollama_api_key");
+          const oUrl = localStorage.getItem("medtrack_ollama_base_url");
+          const oModel = localStorage.getItem("medtrack_ollama_model");
+          const prov = localStorage.getItem("medtrack_ai_provider");
+          if (gKey) clientConfig.groq_api_key = gKey;
+          if (gModel) clientConfig.groq_model = gModel;
+          if (oKey) clientConfig.ollama_api_key = oKey;
+          if (oUrl) clientConfig.ollama_base_url = oUrl;
+          if (oModel) clientConfig.ollama_model = oModel;
+          if (prov) clientConfig.ai_provider = prov;
+        } catch {}
+
         const res = await fetch("/api/ai/parse", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: query }),
+          body: JSON.stringify({ prompt: query, ...clientConfig }),
         });
 
         const json = await res.json();

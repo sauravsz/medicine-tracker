@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const { prompt } = await request.json();
+    const body = await request.json();
+    const prompt = body.prompt;
 
     if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return NextResponse.json(
@@ -22,17 +23,17 @@ export async function POST(request: Request) {
     ]);
     const todayStr = format(new Date(), "yyyy-MM-dd");
 
-    const activeProvider = settings.ai_provider || "groq";
-    const groqKey = settings.groq_api_key?.trim() || process.env.GROQ_API_KEY?.trim();
-    const groqModel = settings.groq_model?.trim() || "llama-3.3-70b-versatile";
+    // Prioritize client browser storage credentials, then settings DB, then environment
+    const activeProvider = body.ai_provider || settings.ai_provider || "groq";
+    const groqKey = body.groq_api_key?.trim() || settings.groq_api_key?.trim() || process.env.GROQ_API_KEY?.trim();
+    const groqModel = body.groq_model?.trim() || settings.groq_model?.trim() || "openai/gpt-oss-120b";
 
-    const ollamaKey = settings.ollama_api_key?.trim() || process.env.OLLAMA_API_KEY?.trim();
-    const ollamaBaseUrl = settings.ollama_base_url?.trim() || process.env.OLLAMA_BASE_URL?.trim() || "https://ollama.com";
-    const ollamaModel = settings.ollama_model?.trim() || "llama3.3";
+    const ollamaKey = body.ollama_api_key?.trim() || settings.ollama_api_key?.trim() || process.env.OLLAMA_API_KEY?.trim();
+    const ollamaBaseUrl = body.ollama_base_url?.trim() || settings.ollama_base_url?.trim() || process.env.OLLAMA_BASE_URL?.trim() || "https://ollama.com";
+    const ollamaModel = body.ollama_model?.trim() || settings.ollama_model?.trim() || "ollamacloud/gemma4:31b";
 
     let parsedPayload: AICommandPayload | null = null;
     let providerSource = "deterministic_nlp_engine";
-
     // 1. If Ollama is selected
     if (activeProvider === "ollama" && (ollamaKey || ollamaBaseUrl)) {
       parsedPayload = await parseWithOllama(prompt, medicines, ollamaBaseUrl, ollamaKey || "", ollamaModel, todayStr);
