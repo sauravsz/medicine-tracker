@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rausch: #ff385c;
+  --color-rausch-active: #e00b41;
+  --color-rausch-disabled: #ffd1da;
+  --color-rausch-error: #c13515;
+  --color-luxe: #460479;
+  --color-plus: #92174d;
+  
+  --color-ink: #222222;
+  --color-body: #3f3f3f;
+  --color-muted: #6a6a6a;
+  --color-muted-soft: #929292;
+  
+  --color-hairline: #dddddd;
+  --color-hairline-soft: #ebebeb;
+  --color-border-strong: #c1c1c1;
+  
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-strong: #f2f2f2;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #222222;
+}
+
+body {
+  background: #ffffff;
+  color: #222222;
+  font-family: -apple-system, BlinkMacSystemFont, "Circular", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Airbnb signature card & dropdown shadow */
+.airbnb-shadow {
+  box-shadow: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px 0, rgba(0, 0, 0, 0.08) 0 4px 12px 0;
+}
+
+.airbnb-shadow-hover:hover {
+  box-shadow: rgba(0, 0, 0, 0.03) 0 0 0 1px, rgba(0, 0, 0, 0.06) 0 4px 12px 0, rgba(0, 0, 0, 0.12) 0 8px 24px 0;
+  transform: translateY(-2px);
+}
+
+.airbnb-search-shadow {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.airbnb-search-shadow:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.08);
+}
