@@ -778,12 +778,13 @@ export async function seedSampleData() {
   }
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
+  const now = new Date().toISOString();
 
   const medsList = [
     {
       id: "med_renolog_01",
       name: "Renolog",
-      strength: "Alpha Ketoanalogues",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -803,7 +804,7 @@ export async function seedSampleData() {
     {
       id: "med_rozucor_02",
       name: "Rozucor ASP 10",
-      strength: "Rosuvastatin 10mg + Aspirin 75mg",
+      strength: null,
       form: "capsule",
       unit_label: "capsules",
       units_per_pack: 10,
@@ -821,7 +822,7 @@ export async function seedSampleData() {
     {
       id: "med_trajenta_03",
       name: "Trajenta Duo 2.5/500",
-      strength: "Linagliptin 2.5mg + Metformin 500mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 10,
@@ -840,8 +841,8 @@ export async function seedSampleData() {
     },
     {
       id: "med_ferronemia_04",
-      name: "Ferronemia",
-      strength: "100 mg",
+      name: "Ferronemia 100mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -868,7 +869,7 @@ export async function seedSampleData() {
     {
       id: "med_nicardiq_05",
       name: "Nicardiq XL 30",
-      strength: "30 mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -886,7 +887,7 @@ export async function seedSampleData() {
     {
       id: "med_rabifast_06",
       name: "Rabifast 20",
-      strength: "Rabeprazole 20mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -905,7 +906,7 @@ export async function seedSampleData() {
     {
       id: "med_telmaln_07",
       name: "Telma LN 40",
-      strength: "Telmisartan 40mg + Cilnidipine 10mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -932,7 +933,7 @@ export async function seedSampleData() {
     {
       id: "med_fidotox_08",
       name: "Fidotox Powder",
-      strength: "Dietary Toxin Binder",
+      strength: null,
       form: "sachet",
       unit_label: "sachets",
       units_per_pack: 10,
@@ -949,8 +950,8 @@ export async function seedSampleData() {
     },
     {
       id: "med_kerendia_09",
-      name: "Kerendia",
-      strength: "10 mg",
+      name: "Kerendia 10mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 14,
@@ -976,7 +977,7 @@ export async function seedSampleData() {
     {
       id: "med_cudoforte_10",
       name: "Cudo Forte",
-      strength: "Probiotic Complex",
+      strength: null,
       form: "capsule",
       unit_label: "capsules",
       units_per_pack: 10,
@@ -994,7 +995,7 @@ export async function seedSampleData() {
     {
       id: "med_anfoe_11",
       name: "Anfoe 4000 IU",
-      strength: "Erythropoietin 4000 IU",
+      strength: null,
       form: "injection",
       unit_label: "injections",
       units_per_pack: 1,
@@ -1012,7 +1013,7 @@ export async function seedSampleData() {
     {
       id: "med_thyronorm50_12",
       name: "Thyronorm 50",
-      strength: "50 mcg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 120,
@@ -1030,7 +1031,7 @@ export async function seedSampleData() {
     {
       id: "med_thyronorm25_13",
       name: "Thyronorm 25",
-      strength: "25 mcg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 120,
@@ -1048,7 +1049,7 @@ export async function seedSampleData() {
     {
       id: "med_lantus_14",
       name: "Lantus Cartridge",
-      strength: "Insulin Glargine 100 IU/ml (3ml)",
+      strength: null,
       form: "other",
       unit_label: "units",
       units_per_pack: 300,
@@ -1066,7 +1067,7 @@ export async function seedSampleData() {
     {
       id: "med_dytor_15",
       name: "Dytor 10",
-      strength: "Torsemide 10mg",
+      strength: null,
       form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
@@ -1083,9 +1084,6 @@ export async function seedSampleData() {
     },
   ];
 
-  const now = new Date().toISOString();
-
-  // Execute fast batch inserts
   for (const m of medsList) {
     await executeCommand(
       `
