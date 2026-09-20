@@ -1,5 +1,4 @@
 import {
-  differenceInCalendarDays,
   addDays,
   format,
   parseISO,
@@ -36,10 +35,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   reminders_enabled: true,
   ai_provider: "groq",
   groq_api_key: null,
-  groq_model: "llama-3.3-70b-versatile",
+  groq_model: "openai/gpt-oss-120b",
   ollama_api_key: null,
   ollama_base_url: "https://ollama.com",
-  ollama_model: "llama3.3",
+  ollama_model: "ollamacloud/gemma4:31b",
 };
 
 export const CHANNEL_METADATA: Record<
@@ -99,6 +98,17 @@ export function safeFormatDate(val: unknown, pattern: string = "yyyy-MM-dd"): st
 }
 
 /**
+ * Timezone-neutral calendar day difference (eliminates UTC vs IST midnight off-by-one drift)
+ */
+export function getCalendarDaysElapsed(laterDate: Date | string, earlierDate: Date | string): number {
+  const d1 = safeParseDate(laterDate);
+  const d2 = safeParseDate(earlierDate);
+  const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  return Math.max(0, Math.floor((utc1 - utc2) / (1000 * 60 * 60 * 24)));
+}
+
+/**
  * Calculates total daily consumption for a medicine from its dose schedules.
  */
 export function calculateDailyConsumption(schedules: DoseSchedule[]): number {
@@ -111,7 +121,7 @@ export function calculateDailyConsumption(schedules: DoseSchedule[]): number {
 }
 
 /**
- * Calculates the current real-time stock state using the time-anchored depletion formula.
+ * Calculates the current real-time stock state using time-anchored depletion and smart in-transit shielding.
  */
 export function computeMedicineState(
   medicine: Medicine,
@@ -131,11 +141,11 @@ export function computeMedicineState(
       ? medicine.safety_buffer_days
       : settings.default_safety_buffer_days ?? 2;
 
-  // 1. Time elapsed since baseline anchor
-  const daysElapsed = Math.max(0, differenceInCalendarDays(referenceDate, baselineDate));
+  // 1. Timezone-neutral calendar days elapsed since baseline anchor
+  const daysElapsed = getCalendarDaysElapsed(referenceDate, baselineDate);
   const consumedSinceBaseline = dailyConsumption * daysElapsed;
 
-  // 2. Sum received restocks recorded on or after the baseline date
+  // 2. Sum received restocks recorded on or after baseline date
   const receivedRestocksSinceBaseline = restocks
     .filter((r) => r.received_date && !isBefore(safeParseDate(r.received_date), baselineDate))
     .reduce((sum, r) => sum + (Number(r.quantity_added) || 0), 0);
@@ -181,12 +191,14 @@ export function computeMedicineState(
     dailyConsumption > 0 ? Math.floor(effectiveStock / dailyConsumption) : 999;
   const effectiveStockOutDate = safeFormatDate(addDays(referenceDate, effectiveDaysRemaining));
 
-  // Check if in-transit order arrives before physical stock-out
+  // In-transit shielding: order is active and arriving
+  const hasInTransit = inTransitOrders.length > 0;
   const inTransitCovers = Boolean(
-    inTransitOrders.length > 0 &&
+    hasInTransit &&
       earliestEta &&
       (isBefore(safeParseDate(earliestEta), safeParseDate(stockOutDate)) ||
-        isSameDay(safeParseDate(earliestEta), safeParseDate(stockOutDate)))
+        isSameDay(safeParseDate(earliestEta), safeParseDate(stockOutDate)) ||
+        daysRemaining <= 5)
   );
 
   const inTransitSummary: InTransitSummary = {
@@ -201,7 +213,7 @@ export function computeMedicineState(
   const channels: ChannelType[] = ["apollo", "mr_med", "offline"];
   const deadlines: ChannelDeadline[] = channels.map((chan) => {
     const override = channelConfigs.find((c) => c.channel === chan);
-    const available = override ? override.available : true;
+    const available = override !== undefined ? Boolean(override.available) : true;
 
     let leadMin = CHANNEL_METADATA[chan].defaultMin;
     let leadMax = CHANNEL_METADATA[chan].defaultMax;
@@ -217,7 +229,6 @@ export function computeMedicineState(
       leadMax = override?.lead_time_max_days ?? settings.default_offline_lead_max ?? 1;
     }
 
-    // Formula: order_by_date = stock_out_date - lead_time_max - safety_buffer
     const totalLeadAndBuffer = leadMax + safetyBuffer;
     const daysUntilOrderBy = daysRemaining - totalLeadAndBuffer;
     const orderByDate = safeFormatDate(addDays(referenceDate, daysUntilOrderBy));
@@ -236,13 +247,14 @@ export function computeMedicineState(
     };
   });
 
-  // 8. Urgency Status & Action Resolver
+  // 8. Urgency Status & Smart False-Alarm Shielding
   const availableDeadlines = deadlines
     .filter((d) => d.available)
     .sort((a, b) => b.lead_time_max - a.lead_time_max);
 
   const apolloDeadline = deadlines.find((d) => d.channel === "apollo");
   const mrMedDeadline = deadlines.find((d) => d.channel === "mr_med");
+  const offlineDeadline = deadlines.find((d) => d.channel === "offline");
 
   let urgency: UrgencyStatus = "OK";
   let urgencyLabel = "OK — Stock Healthy";
@@ -258,23 +270,26 @@ export function computeMedicineState(
     recommendedAction = "Configure dose schedule to begin automated tracking.";
     recommendedChannel = "none";
     recommendedOrderBy = "N/A";
+  } else if (hasInTransit && (onHandStock <= 0 || inTransitCovers)) {
+    // FIX 1: Suppress false critical alarm when order is already en route
+    const firstOrder = inTransitOrders[0];
+    urgency = "ORDER_SOON";
+    urgencyLabel = `En Route (${inTransitUnits} ${medicine.unit_label})`;
+    urgencyColor = "amber";
+    recommendedChannel = firstOrder.channel;
+    recommendedOrderBy = earliestEta || todayStr;
+    recommendedAction = `Order en route: +${inTransitUnits} ${medicine.unit_label} arriving ~${earliestEta || "soon"} via ${CHANNEL_METADATA[firstOrder.channel]?.name || firstOrder.channel}.`;
   } else if (onHandStock <= 0) {
-    if (inTransitCovers) {
-      urgency = "ORDER_NOW";
-      urgencyLabel = "Stock Empty — Order in Transit";
-      urgencyColor = "orange";
-      recommendedAction = `Current stock 0, but ${inTransitUnits} ${medicine.unit_label} arriving ~${earliestEta}.`;
-      recommendedChannel = "offline";
-    } else {
-      urgency = "CRITICAL";
-      urgencyLabel = "Critical — Stock Depleted";
-      urgencyColor = "rose";
-      recommendedAction = "Stock is 0! Purchase immediately from local offline pharmacy.";
-      recommendedChannel = "offline";
-    }
+    urgency = "CRITICAL";
+    urgencyLabel = "Critical — Stock Depleted";
+    urgencyColor = "rose";
+    recommendedAction = offlineDeadline?.available
+      ? "Stock is 0! Purchase immediately from local offline pharmacy."
+      : "Stock is 0! Order immediately from fastest available vendor.";
+    recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
   } else if (availableDeadlines.length === 0) {
     urgency = "CRITICAL";
-    urgencyLabel = "No Active Purchase Channel";
+    urgencyLabel = "No Active Channel";
     urgencyColor = "rose";
     recommendedAction = "Enable at least one purchase channel in settings.";
     recommendedChannel = "none";
@@ -337,7 +352,7 @@ export function computeMedicineState(
           urgency = "CRITICAL";
           urgencyLabel = "Critical — Stockout Risk";
           urgencyColor = "rose";
-          recommendedChannel = "offline";
+          recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
           recommendedOrderBy = todayStr;
           recommendedAction = `CRITICAL: Stockout in ${daysRemaining} days (${stockOutDate}). Buy immediately from local store.`;
         }

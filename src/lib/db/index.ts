@@ -516,11 +516,17 @@ export async function updateMedicine(
 }
 
 export async function deleteMedicine(id: string) {
-  await executeCommand("DELETE FROM dose_schedules WHERE medicine_id = ?;", [id]);
-  await executeCommand("DELETE FROM channel_configs WHERE medicine_id = ?;", [id]);
-  await executeCommand("DELETE FROM restock_events WHERE medicine_id = ?;", [id]);
-  await executeCommand("DELETE FROM stock_adjustments WHERE medicine_id = ?;", [id]);
-  await executeCommand("DELETE FROM medicines WHERE id = ?;", [id]);
+  const { isPg, pg } = getClients();
+  if (isPg && pg) {
+    // Single atomic cascading delete in PostgreSQL
+    await pg.unsafe("DELETE FROM medicines WHERE id = $1;", [id]);
+  } else {
+    await executeCommand("DELETE FROM dose_schedules WHERE medicine_id = ?;", [id]);
+    await executeCommand("DELETE FROM channel_configs WHERE medicine_id = ?;", [id]);
+    await executeCommand("DELETE FROM restock_events WHERE medicine_id = ?;", [id]);
+    await executeCommand("DELETE FROM stock_adjustments WHERE medicine_id = ?;", [id]);
+    await executeCommand("DELETE FROM medicines WHERE id = ?;", [id]);
+  }
 }
 
 // ----------------------------------------------------------------------------

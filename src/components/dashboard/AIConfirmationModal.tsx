@@ -74,9 +74,9 @@ export function AIConfirmationModal({
         await logRestockAction({
           medicine_id: selectedMedId,
           channel,
-          pack_count: packCount,
+          pack_count: unitsPerPack > 1 ? Math.floor(Number(totalUnits) / unitsPerPack) || null : null,
           units_per_pack: unitsPerPack,
-          quantity_added: totalUnits || packCount * unitsPerPack,
+          quantity_added: Number(totalUnits) || 0,
           ordered_date: todayStr,
           expected_arrival_date: !isDelivered ? "2026-09-24" : null,
           received_date: isDelivered ? todayStr : null,
