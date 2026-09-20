@@ -23,8 +23,11 @@ let isPostgres = false;
 let initialized = false;
 
 function getClients() {
-  const dbUrl = process.env.DATABASE_URL;
-
+  const dbUrl =
+    process.env.DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING;
   if (dbUrl && (dbUrl.startsWith("postgres://") || dbUrl.startsWith("postgresql://"))) {
     isPostgres = true;
     if (!pgClient) {
