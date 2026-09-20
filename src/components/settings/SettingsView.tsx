@@ -23,21 +23,13 @@ interface SettingsViewProps {
 }
 
 const GROQ_PRESETS = [
-  { id: "llama-3.3-70b-versatile", label: "Llama 3.3 70B (Recommended)" },
-  { id: "llama-3.1-8b-instant", label: "Llama 3.1 8B (560 t/s)" },
-  { id: "deepseek-r1-distill-llama-70b", label: "DeepSeek R1 70B" },
-  { id: "qwen-2.5-32b", label: "Qwen 2.5 32B" },
-  { id: "gemma2-9b-it", label: "Gemma 2 9B" },
+  { id: "openai/gpt-oss-120b", label: "GPT OSS 120B (OpenAI)" },
+  { id: "qwen/qwen3.8-27b", label: "Qwen 3.8 27B" },
 ];
 
 const OLLAMA_PRESETS = [
-  { id: "llama3.3", label: "Llama 3.3 (Recommended)" },
-  { id: "deepseek-r1", label: "DeepSeek R1" },
-  { id: "qwen2.5", label: "Qwen 2.5" },
-  { id: "qwen2.5-coder", label: "Qwen 2.5 Coder" },
-  { id: "llama3.2", label: "Llama 3.2 (3B)" },
-  { id: "mistral", label: "Mistral" },
-  { id: "phi4", label: "Phi 4" },
+  { id: "ollamacloud/gemma4:31b", label: "Gemma 4 31B" },
+  { id: "ollamacloud/nemotron-3-super", label: "Nemotron 3 Super" },
 ];
 
 export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) {
@@ -71,10 +63,10 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         reminders_enabled: settings.reminders_enabled,
         ai_provider: settings.ai_provider || "groq",
         groq_api_key: settings.groq_api_key?.trim() || null,
-        groq_model: settings.groq_model?.trim() || "llama-3.3-70b-versatile",
+        groq_model: settings.groq_model?.trim() || "openai/gpt-oss-120b",
         ollama_api_key: settings.ollama_api_key?.trim() || null,
         ollama_base_url: settings.ollama_base_url?.trim() || "https://ollama.com",
-        ollama_model: settings.ollama_model?.trim() || "llama3.3",
+        ollama_model: settings.ollama_model?.trim() || "ollamacloud/gemma4:31b",
       });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
@@ -142,7 +134,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
           <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Sparkles className="h-5 w-5" />
           </div>
-          <h2 className="text-base font-bold text-white tracking-tight">AI Engine (Groq & Ollama Cloud)</h2>
+          <h2 className="text-base font-bold text-white tracking-tight">AI Engine</h2>
         </div>
 
         <div className="space-y-4">
@@ -159,7 +151,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             >
               <div className="font-bold text-white flex items-center gap-2 text-xs sm:text-sm">
                 <Cpu className="h-4 w-4 text-[#ff385c]" />
-                <span>Groq LPU (Free Tier)</span>
+                <span>Groq LPU</span>
               </div>
             </button>
 
@@ -174,7 +166,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             >
               <div className="font-bold text-white flex items-center gap-2 text-xs sm:text-sm">
                 <Globe className="h-4 w-4 text-[#38bdf8]" />
-                <span>Ollama Cloud / Remote</span>
+                <span>Ollama Cloud</span>
               </div>
             </button>
           </div>
@@ -198,31 +190,31 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Model Name (Manual or Select Preset)
+                    Model Name
                   </label>
                   <input
                     type="text"
-                    placeholder="llama-3.3-70b-versatile"
-                    value={settings.groq_model || "llama-3.3-70b-versatile"}
+                    placeholder="openai/gpt-oss-120b"
+                    value={settings.groq_model || "openai/gpt-oss-120b"}
                     onChange={(e) => setSettings({ ...settings, groq_model: e.target.value })}
                     className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
                 </div>
               </div>
 
-              {/* Groq Model Presets */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {/* Groq Presets */}
+              <div className="flex items-center gap-2 flex-wrap pt-1">
                 <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-wider mr-1">
-                  Groq Presets:
+                  Groq Models:
                 </span>
                 {GROQ_PRESETS.map((p) => {
-                  const isSelected = (settings.groq_model || "llama-3.3-70b-versatile") === p.id;
+                  const isSelected = (settings.groq_model || "openai/gpt-oss-120b") === p.id;
                   return (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => setSettings({ ...settings, groq_model: p.id })}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
+                      className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected
                           ? "bg-[#ff385c] text-white font-bold shadow-sm"
                           : "bg-white/5 hover:bg-white/10 text-[#cbd5e1] border border-white/10"
@@ -242,7 +234,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Base URL
+                    Ollama Base URL
                   </label>
                   <input
                     type="text"
@@ -259,7 +251,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   </label>
                   <input
                     type="password"
-                    placeholder="Optional token"
+                    placeholder="Bearer token or leave empty"
                     value={settings.ollama_api_key || ""}
                     onChange={(e) => setSettings({ ...settings, ollama_api_key: e.target.value })}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
@@ -272,27 +264,27 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                   </label>
                   <input
                     type="text"
-                    placeholder="llama3.3"
-                    value={settings.ollama_model || "llama3.3"}
+                    placeholder="ollamacloud/gemma4:31b"
+                    value={settings.ollama_model || "ollamacloud/gemma4:31b"}
                     onChange={(e) => setSettings({ ...settings, ollama_model: e.target.value })}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
               </div>
 
-              {/* Ollama Model Presets */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              {/* Ollama Presets */}
+              <div className="flex items-center gap-2 flex-wrap pt-1">
                 <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-wider mr-1">
-                  Ollama Presets:
+                  Ollama Cloud Models:
                 </span>
                 {OLLAMA_PRESETS.map((p) => {
-                  const isSelected = (settings.ollama_model || "llama3.3") === p.id;
+                  const isSelected = (settings.ollama_model || "ollamacloud/gemma4:31b") === p.id;
                   return (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => setSettings({ ...settings, ollama_model: p.id })}
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
+                      className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected
                           ? "bg-[#38bdf8] text-black font-bold shadow-sm"
                           : "bg-white/5 hover:bg-white/10 text-[#cbd5e1] border border-white/10"
