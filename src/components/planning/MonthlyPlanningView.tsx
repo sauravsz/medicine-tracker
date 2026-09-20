@@ -8,9 +8,13 @@ import {
   Truck,
   Plus,
   Layers,
+  Copy,
+  FileText,
+  Sparkles,
 } from "lucide-react";
-import { CalculatedMedicineState } from "@/lib/types";
+import { CalculatedMedicineState, ChannelType } from "@/lib/types";
 import { QuickRestockModal } from "@/components/dashboard/QuickRestockModal";
+import { ProcurementCartModal } from "./ProcurementCartModal";
 import { safeFormatDate } from "@/lib/calculations";
 
 interface MonthlyPlanningViewProps {
@@ -19,6 +23,7 @@ interface MonthlyPlanningViewProps {
 
 export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
   const [selectedForRestock, setSelectedForRestock] = useState<CalculatedMedicineState | null>(null);
+  const [cartVendor, setCartVendor] = useState<ChannelType | null>(null);
   const [vendorFilter, setVendorFilter] = useState<string>("all");
 
   const apolloGroup = medicines.filter((m) => m.monthly_planning.recommended_channel === "apollo");
@@ -32,8 +37,8 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header with 1-Click Order Sheet Builder */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3 font-sans">
             <span>Monthly Procurement Planning</span>
@@ -43,10 +48,19 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => setCartVendor("apollo")}
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-all spring-tap"
+          >
+            <FileText className="h-4 w-4 text-[#ff385c]" />
+            <span>Build Order Sheet</span>
+          </button>
+
           <Link
             href="/medicines/new"
-            className="inline-flex items-center gap-2 px-6 py-2.5 text-[14px] font-semibold liquid-btn-primary rounded-full shadow-md transition-all spring-tap"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold liquid-btn-primary rounded-full shadow-md transition-all spring-tap"
           >
             <Plus className="h-4 w-4 stroke-[2.5]" />
             <span>Add Medicine</span>
@@ -77,8 +91,15 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
             </div>
           </div>
 
-          <div className="text-[11px] text-[#94a3b8] bg-black/40 p-3 rounded-xl border border-white/5">
-            Order cutoff: 10 days before stockout + 2d buffer
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[11px] text-[#94a3b8] font-mono">Order cutoff: 12d buffer</span>
+            <button
+              type="button"
+              onClick={() => setCartVendor("apollo")}
+              className="text-[11px] font-bold text-[#ff385c] hover:underline flex items-center gap-1"
+            >
+              <span>Build Apollo Cart →</span>
+            </button>
           </div>
         </div>
 
@@ -103,8 +124,15 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
             </div>
           </div>
 
-          <div className="text-[11px] text-[#94a3b8] bg-black/40 p-3 rounded-xl border border-white/5">
-            Order cutoff: 5 days before stockout + 2d buffer
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[11px] text-[#94a3b8] font-mono">Order cutoff: 7d buffer</span>
+            <button
+              type="button"
+              onClick={() => setCartVendor("mr_med")}
+              className="text-[11px] font-bold text-[#38bdf8] hover:underline flex items-center gap-1"
+            >
+              <span>Build Mr. Med Cart →</span>
+            </button>
           </div>
         </div>
 
@@ -129,8 +157,15 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
             </div>
           </div>
 
-          <div className="text-[11px] text-[#94a3b8] bg-black/40 p-3 rounded-xl border border-white/5">
-            Order cutoff: 1 day before stockout + 2d buffer
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <span className="text-[11px] text-[#94a3b8] font-mono">Order cutoff: 3d buffer</span>
+            <button
+              type="button"
+              onClick={() => setCartVendor("offline")}
+              className="text-[11px] font-bold text-[#34d399] hover:underline flex items-center gap-1"
+            >
+              <span>Share via WhatsApp →</span>
+            </button>
           </div>
         </div>
       </div>
@@ -138,12 +173,10 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
       {/* Main Procurement Table */}
       <div className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Layers className="h-5 w-5 text-[#ff385c]" />
-              <span>30-Day Pack & Strip Calculator</span>
-            </h2>
-          </div>
+          <h2 className="text-lg font-bold text-white flex items-center gap-2 font-sans">
+            <Layers className="h-5 w-5 text-[#ff385c]" />
+            <span>30-Day Pack & Strip Calculator</span>
+          </h2>
 
           <div className="flex items-center gap-2">
             <button
@@ -216,7 +249,7 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                         )}
                       </Link>
                       <span className="text-[11px] text-[#94a3b8] capitalize">
-                        {item.medicine.form} • Current Stock: {item.on_hand_stock} {item.medicine.unit_label}
+                        {item.medicine.form} • Current: {item.on_hand_stock} {item.medicine.unit_label}
                       </span>
                     </td>
 
@@ -298,6 +331,16 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
           </table>
         </div>
       </div>
+
+      {/* Procurement Cart Modal */}
+      {cartVendor && (
+        <ProcurementCartModal
+          medicines={medicines}
+          initialVendor={cartVendor}
+          onClose={() => setCartVendor(null)}
+          onSuccess={() => window.location.reload()}
+        />
+      )}
 
       {/* Reorder Modal */}
       {selectedForRestock && (
