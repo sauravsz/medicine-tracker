@@ -34,6 +34,12 @@ export const DEFAULT_SETTINGS: AppSettings = {
   reminder_email: null,
   reminder_time: "08:00",
   reminders_enabled: true,
+  ai_provider: "groq",
+  groq_api_key: null,
+  groq_model: "llama-3.3-70b-versatile",
+  ollama_api_key: null,
+  ollama_base_url: "https://ollama.com",
+  ollama_model: "llama3.3",
 };
 
 export const CHANNEL_METADATA: Record<

@@ -9,6 +9,10 @@ import {
   Check,
   Copy,
   Send,
+  Sparkles,
+  Key,
+  Cpu,
+  Globe,
 } from "lucide-react";
 import { AppSettings } from "@/lib/types";
 import { updateSettingsAction } from "@/app/actions";
@@ -24,6 +28,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   const [copiedSql, setCopiedSql] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testCronResult, setTestCronResult] = useState<string | null>(null);
+  const [testAiResult, setTestAiResult] = useState<string | null>(null);
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlSchema);
@@ -46,10 +51,37 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         reminder_email: settings.reminder_email?.trim() || null,
         reminder_time: settings.reminder_time || "08:00",
         reminders_enabled: settings.reminders_enabled,
+        ai_provider: settings.ai_provider || "groq",
+        groq_api_key: settings.groq_api_key?.trim() || null,
+        groq_model: settings.groq_model?.trim() || "llama-3.3-70b-versatile",
+        ollama_api_key: settings.ollama_api_key?.trim() || null,
+        ollama_base_url: settings.ollama_base_url?.trim() || "https://ollama.com",
+        ollama_model: settings.ollama_model?.trim() || "llama3.3",
       });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     });
+  };
+
+  const handleTestAi = async () => {
+    setTestAiResult("Testing natural language intent extraction on 'Bought 4 strips of Telma LN 40 from Apollo for 480'...");
+    try {
+      const res = await fetch("/api/ai/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: "Bought 4 strips of Telma LN 40 from Apollo for 480" }),
+      });
+      const json = await res.json();
+      if (json.success && json.payload) {
+        setTestAiResult(
+          `Success [${json.source}]: ${json.payload.summary_explanation}`
+        );
+      } else {
+        setTestAiResult(`Notice: ${json.error || "Failed to decode intent."}`);
+      }
+    } catch (err: unknown) {
+      setTestAiResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
   };
 
   const handleTestCron = async () => {
@@ -77,7 +109,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
             <span>Settings & Preferences</span>
           </h1>
           <p className="text-sm text-[#94a3b8] mt-1">
-            Global channel lead times, safety buffers, Supabase database migration, and daily email reminders.
+            Groq / Ollama Cloud AI configuration, manual model selection, channel lead times, and Supabase database.
           </p>
         </div>
 
@@ -91,7 +123,195 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         </button>
       </div>
 
-      {/* 1. Global Channel Lead Times */}
+      {/* 1. Groq & Ollama Cloud AI Settings */}
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-white tracking-tight">AI Assistant Engine (Groq & Ollama Cloud)</h2>
+            <p className="text-[13px] text-[#94a3b8]">
+              Connect Groq or Ollama Cloud API and specify any custom model name
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-5">
+          {/* Provider Tabs */}
+          <div>
+            <label className="block text-[12px] font-bold text-[#cbd5e1] uppercase tracking-wider mb-2">
+              Select AI Provider
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, ai_provider: "groq" })}
+                className={`p-4 rounded-2xl border text-left transition-all spring-tap ${
+                  settings.ai_provider === "groq" || !settings.ai_provider
+                    ? "border-[#ff385c] bg-[#ff385c]/15 text-white ring-1 ring-[#ff385c]/40 shadow-lg shadow-[#ff385c]/15"
+                    : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
+                }`}
+              >
+                <div className="font-bold text-white flex items-center gap-2">
+                  <Cpu className="h-4 w-4 text-[#ff385c]" />
+                  <span>Groq API (Ultra Fast LPU)</span>
+                </div>
+                <p className="text-[11px] text-[#94a3b8] mt-1">High-speed inference on Groq hardware</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, ai_provider: "ollama" })}
+                className={`p-4 rounded-2xl border text-left transition-all spring-tap ${
+                  settings.ai_provider === "ollama"
+                    ? "border-[#38bdf8] bg-[#38bdf8]/15 text-white ring-1 ring-[#38bdf8]/40 shadow-lg shadow-[#38bdf8]/15"
+                    : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
+                }`}
+              >
+                <div className="font-bold text-white flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-[#38bdf8]" />
+                  <span>Ollama Cloud / Remote API</span>
+                </div>
+                <p className="text-[11px] text-[#94a3b8] mt-1">Self-hosted or Cloud Ollama endpoint</p>
+              </button>
+            </div>
+          </div>
+
+          {/* GROQ CONFIGURATION */}
+          {(settings.ai_provider === "groq" || !settings.ai_provider) && (
+            <div className="p-5 rounded-2xl bg-black/30 border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Key className="h-3.5 w-3.5 text-[#ff385c]" />
+                  <span>Groq Configuration</span>
+                </span>
+                <a
+                  href="https://console.groq.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#38bdf8] hover:underline"
+                >
+                  Get free key at console.groq.com →
+                </a>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                    Groq API Key
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="gsk_..."
+                    value={settings.groq_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
+                    className="w-full liquid-glass-input rounded-xl px-4 py-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                    Model Name (Manual Input)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. llama-3.3-70b-versatile"
+                    value={settings.groq_model || "llama-3.3-70b-versatile"}
+                    onChange={(e) => setSettings({ ...settings, groq_model: e.target.value })}
+                    className="w-full liquid-glass-input rounded-xl px-4 py-2.5 text-sm text-white font-mono"
+                  />
+                  <p className="text-[10px] text-[#64748b] mt-1">
+                    Examples: <code>llama-3.3-70b-versatile</code>, <code>llama-3.1-8b-instant</code>, <code>mixtral-8x7b-32768</code>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* OLLAMA CONFIGURATION */}
+          {settings.ai_provider === "ollama" && (
+            <div className="p-5 rounded-2xl bg-black/30 border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5 text-[#38bdf8]" />
+                  <span>Ollama Cloud / Endpoint Configuration</span>
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                    Ollama Base URL
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="https://ollama.com or http://localhost:11434"
+                    value={settings.ollama_base_url || "https://ollama.com"}
+                    onChange={(e) => setSettings({ ...settings, ollama_base_url: e.target.value })}
+                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                    API Key (Optional / Bearer)
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Bearer token or leave empty"
+                    value={settings.ollama_api_key || ""}
+                    onChange={(e) => setSettings({ ...settings, ollama_api_key: e.target.value })}
+                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                    Model Name (Manual Input)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. llama3.3, qwen2.5, deepseek-r1"
+                    value={settings.ollama_model || "llama3.3"}
+                    onChange={(e) => setSettings({ ...settings, ollama_model: e.target.value })}
+                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                  />
+                </div>
+              </div>
+              <p className="text-[10px] text-[#64748b]">
+                Examples: <code>llama3.3</code>, <code>qwen2.5-coder</code>, <code>mistral</code>, <code>deepseek-r1</code>
+              </p>
+            </div>
+          )}
+
+          {/* Test AI Button */}
+          <div className="p-4 rounded-2xl bg-black/40 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-bold text-white block">Test AI Intent Parser</span>
+              <span className="text-[12px] text-[#94a3b8]">
+                Sends a test sentence to verify {settings.ai_provider === "ollama" ? "Ollama Cloud" : "Groq"} extraction
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleTestAi}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-[#ff385c]" />
+              <span>Test Intent Extraction</span>
+            </button>
+          </div>
+
+          {testAiResult && (
+            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-xs font-mono text-[#34d399] leading-relaxed">
+              {testAiResult}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 2. Global Channel Lead Times */}
       <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-white/10">
           <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
@@ -227,7 +447,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         </div>
       </section>
 
-      {/* 2. Daily Reminders & Email Digest */}
+      {/* 3. Daily Reminders & Email Digest */}
       <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
         <div className="flex items-center gap-3 pb-4 border-b border-white/10">
           <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
@@ -317,7 +537,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         </div>
       </section>
 
-      {/* 3. Supabase & Database Setup */}
+      {/* 4. Supabase & Database Setup */}
       <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">

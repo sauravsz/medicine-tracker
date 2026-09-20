@@ -145,6 +145,12 @@ export async function getSettings(): Promise<AppSettings> {
     reminder_email: row.reminder_email ? String(row.reminder_email) : null,
     reminder_time: String(row.reminder_time || "08:00"),
     reminders_enabled: Boolean(row.reminders_enabled),
+    ai_provider: (row.ai_provider as AppSettings["ai_provider"]) || "groq",
+    groq_api_key: row.groq_api_key ? String(row.groq_api_key) : null,
+    groq_model: row.groq_model ? String(row.groq_model) : "llama-3.3-70b-versatile",
+    ollama_api_key: row.ollama_api_key ? String(row.ollama_api_key) : null,
+    ollama_base_url: row.ollama_base_url ? String(row.ollama_base_url) : "https://ollama.com",
+    ollama_model: row.ollama_model ? String(row.ollama_model) : "llama3.3",
   };
 }
 
@@ -165,7 +171,13 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
         app_passcode = ?,
         reminder_email = ?,
         reminder_time = ?,
-        reminders_enabled = ?
+        reminders_enabled = ?,
+        ai_provider = ?,
+        groq_api_key = ?,
+        groq_model = ?,
+        ollama_api_key = ?,
+        ollama_base_url = ?,
+        ollama_model = ?
       WHERE id = 1;
     `,
     [
@@ -180,9 +192,14 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
       merged.reminder_email || null,
       merged.reminder_time,
       merged.reminders_enabled ? 1 : 0,
+      merged.ai_provider || "groq",
+      merged.groq_api_key || null,
+      merged.groq_model || "llama-3.3-70b-versatile",
+      merged.ollama_api_key || null,
+      merged.ollama_base_url || "https://ollama.com",
+      merged.ollama_model || "llama3.3",
     ]
   );
-
   return merged;
 }
 

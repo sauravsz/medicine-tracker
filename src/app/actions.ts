@@ -194,6 +194,12 @@ export async function updateSettingsAction(payload: {
   reminder_email?: string | null;
   reminder_time?: string;
   reminders_enabled?: boolean;
+  ai_provider?: "groq" | "ollama" | null;
+  groq_api_key?: string | null;
+  groq_model?: string | null;
+  ollama_api_key?: string | null;
+  ollama_base_url?: string | null;
+  ollama_model?: string | null;
 }) {
   const updated = await updateSettings(payload);
   revalidatePath("/");

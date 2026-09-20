@@ -15,8 +15,16 @@ CREATE TABLE IF NOT EXISTS settings (
   app_passcode TEXT,
   reminder_email TEXT,
   reminder_time TEXT NOT NULL DEFAULT '08:00',
-  reminders_enabled BOOLEAN NOT NULL DEFAULT true
+  reminders_enabled BOOLEAN NOT NULL DEFAULT true,
+  ai_provider TEXT NOT NULL DEFAULT 'groq',
+  groq_api_key TEXT,
+  openai_api_key TEXT
 );
+
+-- Migration helper for existing settings table
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS ai_provider TEXT DEFAULT 'groq';
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS groq_api_key TEXT;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS openai_api_key TEXT;
 
 -- Insert default settings row if missing
 INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;

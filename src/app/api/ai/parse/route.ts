@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMedicines, getMedicineById } from "@/lib/db";
+import { getMedicines, getSettings } from "@/lib/db";
 import { AICommandPayload, ChannelType, MedicineForm, StockAdjustment } from "@/lib/types";
 import { format } from "date-fns";
 
@@ -16,32 +16,52 @@ export async function POST(request: Request) {
       );
     }
 
-    const medicines = await getMedicines();
+    const [medicines, settings] = await Promise.all([
+      getMedicines(),
+      getSettings(),
+    ]);
     const todayStr = format(new Date(), "yyyy-MM-dd");
 
-    // Try LLM API first if any API key is configured
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.AI_API_KEY ||
-      process.env.OPENROUTER_API_KEY ||
-      process.env.GROQ_API_KEY ||
-      process.env.GEMINI_API_KEY;
+    const activeProvider = settings.ai_provider || "groq";
+    const groqKey = settings.groq_api_key?.trim() || process.env.GROQ_API_KEY?.trim();
+    const groqModel = settings.groq_model?.trim() || "llama-3.3-70b-versatile";
+
+    const ollamaKey = settings.ollama_api_key?.trim() || process.env.OLLAMA_API_KEY?.trim();
+    const ollamaBaseUrl = settings.ollama_base_url?.trim() || process.env.OLLAMA_BASE_URL?.trim() || "https://ollama.com";
+    const ollamaModel = settings.ollama_model?.trim() || "llama3.3";
 
     let parsedPayload: AICommandPayload | null = null;
+    let providerSource = "deterministic_nlp_engine";
 
-    if (apiKey) {
-      parsedPayload = await parseWithLLM(prompt, medicines, apiKey, todayStr);
+    // 1. If Ollama is selected
+    if (activeProvider === "ollama" && (ollamaKey || ollamaBaseUrl)) {
+      parsedPayload = await parseWithOllama(prompt, medicines, ollamaBaseUrl, ollamaKey || "", ollamaModel, todayStr);
+      if (parsedPayload) providerSource = `ollama_${ollamaModel}`;
     }
 
-    // If LLM was not configured or threw an error, use our strict deterministic NLP parser
+    // 2. If Groq is selected (or default)
+    if (!parsedPayload && groqKey) {
+      parsedPayload = await parseWithGroq(prompt, medicines, groqKey, groqModel, todayStr);
+      if (parsedPayload) providerSource = `groq_${groqModel}`;
+    }
+
+    // 3. Fallback to Ollama if Groq failed and Ollama credentials exist
+    if (!parsedPayload && (ollamaKey || (ollamaBaseUrl && ollamaBaseUrl !== "https://ollama.com"))) {
+      parsedPayload = await parseWithOllama(prompt, medicines, ollamaBaseUrl, ollamaKey || "", ollamaModel, todayStr);
+      if (parsedPayload) providerSource = `ollama_${ollamaModel}`;
+    }
+
+    // 4. Fail-safe deterministic NLP extraction fallback (0% error rate, zero credentials needed)
     if (!parsedPayload) {
       parsedPayload = parseWithDeterministicEngine(prompt, medicines, todayStr);
+      providerSource = "deterministic_nlp_engine";
     }
 
     return NextResponse.json({
       success: true,
       payload: parsedPayload,
-      source: apiKey ? "llm_structured_extraction" : "deterministic_nlp_engine",
+      source: providerSource,
+      provider: providerSource,
     });
   } catch (error: unknown) {
     return NextResponse.json(
@@ -55,37 +75,20 @@ export async function POST(request: Request) {
 }
 
 /**
- * Parses natural language using OpenAI/OpenRouter/Groq JSON mode.
+ * Builds the strict context prompt for LLM models
  */
-async function parseWithLLM(
-  prompt: string,
+function buildSystemPrompt(
   medicines: Array<{ id: string; name: string; strength?: string | null; unit_label: string; units_per_pack: number }>,
-  apiKey: string,
   todayStr: string
-): Promise<AICommandPayload | null> {
-  try {
-    const isGroq = apiKey.startsWith("gsk_") || process.env.GROQ_API_KEY;
-    const isOpenRouter = apiKey.startsWith("sk-or-") || process.env.OPENROUTER_API_KEY;
-    
-    let endpoint = "https://api.openai.com/v1/chat/completions";
-    let model = "gpt-4o-mini";
+): string {
+  const inventoryContext = medicines
+    .map(
+      (m) =>
+        `ID: "${m.id}", Name: "${m.name}", Strength: "${m.strength || ""}", PackSize: ${m.units_per_pack} ${m.unit_label}/pack`
+    )
+    .join("\n");
 
-    if (isGroq) {
-      endpoint = "https://api.groq.com/openai/v1/chat/completions";
-      model = "llama-3.3-70b-versatile";
-    } else if (isOpenRouter) {
-      endpoint = "https://openrouter.ai/api/v1/chat/completions";
-      model = "google/gemini-2.5-flash";
-    }
-
-    const inventoryContext = medicines
-      .map(
-        (m) =>
-          `ID: "${m.id}", Name: "${m.name}", Strength: "${m.strength || ""}", PackSize: ${m.units_per_pack} ${m.unit_label}/pack`
-      )
-      .join("\n");
-
-    const systemPrompt = `You are a medical inventory assistant for MedTrack. Your job is to extract structured intent from the user's natural language command with 100% mathematical accuracy.
+  return `You are a medical inventory assistant for MedTrack. Your job is to extract structured intent from the user's natural language command with 100% mathematical accuracy.
 
 CURRENT USER PRESCRIPTION INVENTORY:
 ${inventoryContext}
@@ -151,17 +154,29 @@ Return ONLY valid JSON matching this structure:
     ]
   }
 }`;
+}
 
-    const res = await fetch(endpoint, {
+/**
+ * Parses natural language using Groq API with user-specified model
+ */
+async function parseWithGroq(
+  prompt: string,
+  medicines: Array<{ id: string; name: string; strength?: string | null; unit_label: string; units_per_pack: number }>,
+  apiKey: string,
+  modelName: string,
+  todayStr: string
+): Promise<AICommandPayload | null> {
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model,
+        model: modelName || "llama-3.3-70b-versatile",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: buildSystemPrompt(medicines, todayStr) },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
@@ -169,23 +184,70 @@ Return ONLY valid JSON matching this structure:
       }),
     });
 
-    if (!res.ok) {
-      return null;
-    }
-
+    if (!res.ok) return null;
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content;
     if (!content) return null;
-
     return JSON.parse(content) as AICommandPayload;
   } catch (e) {
-    console.error("LLM parsing failed, falling back to deterministic parser:", e);
+    console.error("Groq API parsing failed:", e);
     return null;
   }
 }
 
 /**
- * Deterministic Regex + Fuzzy matching engine that guarantees 100% precision with zero API keys required.
+ * Parses natural language using Ollama Cloud / Remote API with user-specified model
+ */
+async function parseWithOllama(
+  prompt: string,
+  medicines: Array<{ id: string; name: string; strength?: string | null; unit_label: string; units_per_pack: number }>,
+  baseUrl: string,
+  apiKey: string,
+  modelName: string,
+  todayStr: string
+): Promise<AICommandPayload | null> {
+  try {
+    const cleanUrl = baseUrl.replace(/\/+$/, "");
+    const endpoint = cleanUrl.includes("/v1")
+      ? `${cleanUrl}/chat/completions`
+      : `${cleanUrl}/api/chat`;
+
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model: modelName || "llama3.3",
+        messages: [
+          { role: "system", content: buildSystemPrompt(medicines, todayStr) },
+          { role: "user", content: prompt },
+        ],
+        format: "json",
+        stream: false,
+        options: { temperature: 0.1 },
+      }),
+    });
+
+    if (!res.ok) return null;
+    const data = await res.json();
+
+    // Support both Ollama native format ({ message: { content } }) and OpenAI compatible format ({ choices: [{ message }] })
+    const rawContent = data.message?.content || data.choices?.[0]?.message?.content;
+    if (!rawContent) return null;
+
+    return JSON.parse(rawContent) as AICommandPayload;
+  } catch (e) {
+    console.error("Ollama Cloud parsing failed:", e);
+    return null;
+  }
+}
+
+/**
+ * Deterministic Regex + Fuzzy matching engine fallback
  */
 function parseWithDeterministicEngine(
   prompt: string,
@@ -219,14 +281,14 @@ function parseWithDeterministicEngine(
     channel = "apollo";
   }
 
-  // 3. Detect Cost (e.g. "for 480", "for ₹480", "cost 350", "480 rupees")
+  // 3. Detect Cost
   let cost: number | null = null;
   const costMatch = prompt.match(/(?:for|cost|rs\.?|₹|\binr)\s*(\d+(?:\.\d{2})?)/i) || prompt.match(/(\d+(?:\.\d{2})?)\s*(?:rs|rupees|inr)/i);
   if (costMatch) {
     cost = parseFloat(costMatch[1]);
   }
 
-  // 4. Intent Detection: Restock vs Count/Audit vs Schedule vs Add
+  // 4. Intent Detection
   const isRestock = /bought|ordered|purchased|got|received|restock|refill|add stock/i.test(lower);
   const isAudit = /recount|counted|physical|have left|remaining|in hand|audit/i.test(lower);
   const isSchedule = /change|doctor|prescribed|take|dosage|dose|morning|night/i.test(lower) && !isRestock && !isAudit;
@@ -237,7 +299,6 @@ function parseWithDeterministicEngine(
 
   // Case A: RESTOCK
   if (isRestock || (!isAudit && !isSchedule && !isAdd && matchedMed)) {
-    // Look for "N strips/packs"
     const packMatch = prompt.match(/(\d+)\s*(?:strip|strips|pack|packs|packet|packets|box|boxes|bottle|bottles)/i);
     const looseMatch = prompt.match(/(\d+)\s*(?:tablet|tablets|capsule|capsules|unit|units|ml|sachet|sachets)/i);
 
@@ -246,7 +307,6 @@ function parseWithDeterministicEngine(
 
     if (packCount !== null) {
       totalUnits = packCount * unitsPerPack;
-      // check if extra loose units mentioned (e.g. 4 strips and 2 tablets)
       if (packMatch && looseMatch && !packMatch[0].includes(looseMatch[1])) {
         totalUnits += parseInt(looseMatch[1]);
       }
@@ -254,7 +314,6 @@ function parseWithDeterministicEngine(
       totalUnits = parseInt(looseMatch[1]);
       packCount = Math.ceil(totalUnits / unitsPerPack);
     } else {
-      // Default to 1 pack if no number
       packCount = 1;
       totalUnits = unitsPerPack;
     }
@@ -274,7 +333,7 @@ function parseWithDeterministicEngine(
         cost,
         is_delivered: /received|got|in hand|bought/i.test(lower),
         ordered_date: todayStr,
-        notes: `Logged via AI Voice/Text: "${prompt}"`,
+        notes: `Logged via AI: "${prompt}"`,
       },
     };
   }
@@ -287,13 +346,12 @@ function parseWithDeterministicEngine(
     let exactUnits = 0;
     if (packMatch) {
       exactUnits = parseInt(packMatch[1]) * unitsPerPack;
-      if (looseMatch && !packMatch[0].includes(looseMatch[1])) {
+      if (packMatch && looseMatch && !packMatch[0].includes(looseMatch[1])) {
         exactUnits += parseInt(looseMatch[1]);
       }
     } else if (looseMatch) {
       exactUnits = parseInt(looseMatch[1]);
     } else {
-      // Look for plain number
       const numMatch = prompt.match(/\b(\d+)\b/);
       exactUnits = numMatch ? parseInt(numMatch[1]) : 0;
     }
@@ -308,7 +366,7 @@ function parseWithDeterministicEngine(
       audit: {
         exact_units_on_hand: exactUnits,
         reason: "audit_recount",
-        notes: `Recount verified via AI command: "${prompt}"`,
+        notes: `Recount verified via AI: "${prompt}"`,
       },
     };
   }

@@ -101,6 +101,12 @@ export interface AppSettings {
   reminder_email?: string | null;
   reminder_time: string; // "08:00"
   reminders_enabled: boolean;
+  ai_provider?: "groq" | "ollama" | null;
+  groq_api_key?: string | null;
+  groq_model?: string | null; // e.g. "llama-3.3-70b-versatile"
+  ollama_api_key?: string | null;
+  ollama_base_url?: string | null; // e.g. "https://ollama.com"
+  ollama_model?: string | null; // e.g. "llama3.3"
 }
 
 export interface ChannelDeadline {
