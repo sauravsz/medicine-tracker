@@ -18,7 +18,14 @@ import {
 import { ChannelType, MedicineForm, StockAdjustment } from "@/lib/types";
 
 export async function getDashboardData() {
-  const { settings, states } = await getAllCalculatedStates();
+  let { settings, states } = await getAllCalculatedStates();
+
+  if (states.length === 0) {
+    await seedSampleData();
+    const res = await getAllCalculatedStates();
+    settings = res.settings;
+    states = res.states;
+  }
 
   const total = states.length;
   const ok = states.filter((s) => s.urgency === "OK").length;

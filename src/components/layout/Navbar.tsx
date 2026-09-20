@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Pill,
   LayoutDashboard,
@@ -16,6 +16,7 @@ import { useState, useTransition } from "react";
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [seeded, setSeeded] = useState(false);
 
@@ -23,7 +24,8 @@ export function Navbar() {
     startTransition(async () => {
       await seedSampleDataAction();
       setSeeded(true);
-      setTimeout(() => setSeeded(false), 3000);
+      router.refresh();
+      window.location.reload();
     });
   };
 
