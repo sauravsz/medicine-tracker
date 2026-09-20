@@ -121,186 +121,6 @@ async function executeCommand(sqlText: string, params: (string | number | boolea
 
 export async function initDb() {
   if (initialized) return;
-  const { isPg, pg, sqlite } = getClients();
-
-  if (isPg && pg) {
-    await pg.unsafe(`
-      CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY DEFAULT 1,
-        default_apollo_lead_min INTEGER NOT NULL DEFAULT 7,
-        default_apollo_lead_max INTEGER NOT NULL DEFAULT 10,
-        default_mr_med_lead_min INTEGER NOT NULL DEFAULT 3,
-        default_mr_med_lead_max INTEGER NOT NULL DEFAULT 5,
-        default_offline_lead_min INTEGER NOT NULL DEFAULT 0,
-        default_offline_lead_max INTEGER NOT NULL DEFAULT 1,
-        default_safety_buffer_days INTEGER NOT NULL DEFAULT 2,
-        app_passcode TEXT,
-        reminder_email TEXT,
-        reminder_time TEXT NOT NULL DEFAULT '08:00',
-        reminders_enabled BOOLEAN NOT NULL DEFAULT true
-      );
-
-      INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
-
-      CREATE TABLE IF NOT EXISTS medicines (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        strength TEXT,
-        form TEXT NOT NULL DEFAULT 'tablet',
-        unit_label TEXT NOT NULL DEFAULT 'tablets',
-        units_per_pack INTEGER NOT NULL DEFAULT 1,
-        baseline_stock NUMERIC(10, 2) NOT NULL DEFAULT 0,
-        baseline_date DATE NOT NULL,
-        safety_buffer_days INTEGER,
-        notes TEXT,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS dose_schedules (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
-        time_of_day TEXT NOT NULL,
-        quantity NUMERIC(6, 2) NOT NULL DEFAULT 1,
-        interval_days INTEGER NOT NULL DEFAULT 1,
-        instructions TEXT
-      );
-
-      CREATE TABLE IF NOT EXISTS channel_configs (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
-        channel TEXT NOT NULL,
-        lead_time_min_days INTEGER NOT NULL,
-        lead_time_max_days INTEGER NOT NULL,
-        available BOOLEAN NOT NULL DEFAULT true,
-        UNIQUE(medicine_id, channel)
-      );
-
-      CREATE TABLE IF NOT EXISTS restock_events (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
-        channel TEXT NOT NULL,
-        pack_count INTEGER,
-        units_per_pack INTEGER,
-        quantity_added INTEGER NOT NULL,
-        ordered_date DATE NOT NULL,
-        expected_arrival_date DATE,
-        received_date DATE,
-        cost NUMERIC(10, 2),
-        notes TEXT,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-
-      CREATE TABLE IF NOT EXISTS stock_adjustments (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
-        delta NUMERIC(6, 2) NOT NULL,
-        reason TEXT NOT NULL,
-        notes TEXT,
-        date DATE NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
-      );
-    `);
-  } else if (sqlite) {
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS settings (
-        id INTEGER PRIMARY KEY,
-        default_apollo_lead_min INTEGER NOT NULL DEFAULT 7,
-        default_apollo_lead_max INTEGER NOT NULL DEFAULT 10,
-        default_mr_med_lead_min INTEGER NOT NULL DEFAULT 3,
-        default_mr_med_lead_max INTEGER NOT NULL DEFAULT 5,
-        default_offline_lead_min INTEGER NOT NULL DEFAULT 0,
-        default_offline_lead_max INTEGER NOT NULL DEFAULT 1,
-        default_safety_buffer_days INTEGER NOT NULL DEFAULT 2,
-        app_passcode TEXT,
-        reminder_email TEXT,
-        reminder_time TEXT NOT NULL DEFAULT '08:00',
-        reminders_enabled INTEGER NOT NULL DEFAULT 1
-      );
-    `);
-
-    await sqlite.execute(`
-      INSERT OR IGNORE INTO settings (
-        id, default_apollo_lead_min, default_apollo_lead_max,
-        default_mr_med_lead_min, default_mr_med_lead_max,
-        default_offline_lead_min, default_offline_lead_max,
-        default_safety_buffer_days, reminder_time, reminders_enabled
-      ) VALUES (1, 7, 10, 3, 5, 0, 1, 2, '08:00', 1);
-    `);
-
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS medicines (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        strength TEXT,
-        form TEXT NOT NULL DEFAULT 'tablet',
-        unit_label TEXT NOT NULL DEFAULT 'tablets',
-        units_per_pack INTEGER NOT NULL DEFAULT 1,
-        baseline_stock REAL NOT NULL DEFAULT 0,
-        baseline_date TEXT NOT NULL,
-        safety_buffer_days INTEGER,
-        notes TEXT,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-    `);
-
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS dose_schedules (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL,
-        time_of_day TEXT NOT NULL,
-        quantity REAL NOT NULL DEFAULT 1,
-        interval_days INTEGER NOT NULL DEFAULT 1,
-        instructions TEXT,
-        FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
-      );
-    `);
-
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS channel_configs (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL,
-        channel TEXT NOT NULL,
-        lead_time_min_days INTEGER NOT NULL,
-        lead_time_max_days INTEGER NOT NULL,
-        available INTEGER NOT NULL DEFAULT 1,
-        FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
-      );
-    `);
-
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS restock_events (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL,
-        channel TEXT NOT NULL,
-        pack_count INTEGER,
-        units_per_pack INTEGER,
-        quantity_added INTEGER NOT NULL,
-        ordered_date TEXT NOT NULL,
-        expected_arrival_date TEXT,
-        received_date TEXT,
-        cost REAL,
-        notes TEXT,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
-      );
-    `);
-
-    await sqlite.execute(`
-      CREATE TABLE IF NOT EXISTS stock_adjustments (
-        id TEXT PRIMARY KEY,
-        medicine_id TEXT NOT NULL,
-        delta REAL NOT NULL,
-        reason TEXT NOT NULL,
-        notes TEXT,
-        date TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE
-      );
-    `);
-  }
-
   initialized = true;
 }
 
@@ -309,7 +129,6 @@ export async function initDb() {
 // ----------------------------------------------------------------------------
 
 export async function getSettings(): Promise<AppSettings> {
-  await initDb();
   const rows = await queryRows("SELECT * FROM settings WHERE id = 1;");
   if (rows.length === 0) return DEFAULT_SETTINGS;
   const row = rows[0];
@@ -330,7 +149,6 @@ export async function getSettings(): Promise<AppSettings> {
 }
 
 export async function updateSettings(data: Partial<AppSettings>): Promise<AppSettings> {
-  await initDb();
   const current = await getSettings();
   const merged: AppSettings = { ...current, ...data };
 
@@ -373,7 +191,6 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
 // ----------------------------------------------------------------------------
 
 export async function getMedicines(): Promise<Medicine[]> {
-  await initDb();
   const rows = await queryRows("SELECT * FROM medicines ORDER BY name ASC;");
   return rows.map((row) => ({
     id: String(row.id),
@@ -401,9 +218,14 @@ export async function getMedicineById(id: string): Promise<{
   restocks: RestockEvent[];
   adjustments: StockAdjustment[];
 } | null> {
-  await initDb();
+  const [medRows, schedRows, chanRows, restockRows, adjRows] = await Promise.all([
+    queryRows("SELECT * FROM medicines WHERE id = ?;", [id]),
+    queryRows("SELECT * FROM dose_schedules WHERE medicine_id = ? ORDER BY time_of_day ASC;", [id]),
+    queryRows("SELECT * FROM channel_configs WHERE medicine_id = ?;", [id]),
+    queryRows("SELECT * FROM restock_events WHERE medicine_id = ? ORDER BY ordered_date DESC;", [id]),
+    queryRows("SELECT * FROM stock_adjustments WHERE medicine_id = ? ORDER BY date DESC, created_at DESC;", [id]),
+  ]);
 
-  const medRows = await queryRows("SELECT * FROM medicines WHERE id = ?;", [id]);
   if (medRows.length === 0) return null;
   const row = medRows[0];
   const medicine: Medicine = {
@@ -423,13 +245,6 @@ export async function getMedicineById(id: string): Promise<{
     created_at: String(row.created_at),
     updated_at: String(row.updated_at),
   };
-
-  const [schedRows, chanRows, restockRows, adjRows] = await Promise.all([
-    queryRows("SELECT * FROM dose_schedules WHERE medicine_id = ? ORDER BY time_of_day ASC;", [id]),
-    queryRows("SELECT * FROM channel_configs WHERE medicine_id = ?;", [id]),
-    queryRows("SELECT * FROM restock_events WHERE medicine_id = ? ORDER BY ordered_date DESC;", [id]),
-    queryRows("SELECT * FROM stock_adjustments WHERE medicine_id = ? ORDER BY date DESC, created_at DESC;", [id]),
-  ]);
 
   const schedules: DoseSchedule[] = schedRows.map((s) => ({
     id: String(s.id),
@@ -508,7 +323,6 @@ export async function createMedicine(params: {
     available: boolean;
   }>;
 }): Promise<string> {
-  await initDb();
   const id = `med_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -615,7 +429,6 @@ export async function updateMedicine(
     }>;
   }
 ) {
-  await initDb();
   const now = new Date().toISOString();
 
   const current = await getMedicineById(id);
@@ -697,7 +510,6 @@ export async function updateMedicine(
 }
 
 export async function deleteMedicine(id: string) {
-  await initDb();
   await executeCommand("DELETE FROM dose_schedules WHERE medicine_id = ?;", [id]);
   await executeCommand("DELETE FROM channel_configs WHERE medicine_id = ?;", [id]);
   await executeCommand("DELETE FROM restock_events WHERE medicine_id = ?;", [id]);
@@ -721,7 +533,6 @@ export async function logRestock(params: {
   cost?: number | null;
   notes?: string | null;
 }): Promise<string> {
-  await initDb();
   const id = `rst_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
 
@@ -753,13 +564,11 @@ export async function logRestock(params: {
 }
 
 export async function markRestockReceived(id: string, receivedDate?: string) {
-  await initDb();
   const dateStr = receivedDate || format(new Date(), "yyyy-MM-dd");
   await executeCommand("UPDATE restock_events SET received_date = ? WHERE id = ?;", [dateStr, id]);
 }
 
 export async function deleteRestock(id: string) {
-  await initDb();
   await executeCommand("DELETE FROM restock_events WHERE id = ?;", [id]);
 }
 
@@ -776,7 +585,6 @@ export async function logStockAdjustment(params: {
   reset_baseline?: boolean;
   new_baseline_stock?: number;
 }): Promise<string> {
-  await initDb();
   const id = `adj_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const now = new Date().toISOString();
   const dateStr = params.date || format(new Date(), "yyyy-MM-dd");
@@ -809,33 +617,126 @@ export async function logStockAdjustment(params: {
 }
 
 // ----------------------------------------------------------------------------
-// All State Resolver
+// Ultra High-Speed Single-Round-Trip State Resolver
 // ----------------------------------------------------------------------------
 
 export async function getAllCalculatedStates(referenceDate: Date = new Date()): Promise<{
   settings: AppSettings;
   states: CalculatedMedicineState[];
 }> {
-  await initDb();
-  const settings = await getSettings();
-  const medicines = await getMedicines();
+  const [settings, medRows, schedRows, chanRows, restockRows, adjRows] = await Promise.all([
+    getSettings(),
+    queryRows("SELECT * FROM medicines ORDER BY name ASC;"),
+    queryRows("SELECT * FROM dose_schedules ORDER BY time_of_day ASC;"),
+    queryRows("SELECT * FROM channel_configs;"),
+    queryRows("SELECT * FROM restock_events ORDER BY ordered_date DESC;"),
+    queryRows("SELECT * FROM stock_adjustments ORDER BY date DESC, created_at DESC;"),
+  ]);
 
-  const states: CalculatedMedicineState[] = [];
-  for (const m of medicines) {
-    const full = await getMedicineById(m.id);
-    if (full) {
-      const state = computeMedicineState(
-        full.medicine,
-        full.schedules,
-        full.channel_configs,
-        full.restocks,
-        full.adjustments,
-        settings,
-        referenceDate
-      );
-      states.push(state);
-    }
+  // Group by medicine_id in memory (0ms)
+  const schedMap = new Map<string, DoseSchedule[]>();
+  for (const s of schedRows) {
+    const medId = String(s.medicine_id);
+    if (!schedMap.has(medId)) schedMap.set(medId, []);
+    schedMap.get(medId)!.push({
+      id: String(s.id),
+      medicine_id: medId,
+      time_of_day: String(s.time_of_day),
+      quantity: Number(s.quantity),
+      interval_days: Number(s.interval_days || 1),
+      instructions: s.instructions ? String(s.instructions) : null,
+    });
   }
+
+  const chanMap = new Map<string, ChannelConfig[]>();
+  for (const c of chanRows) {
+    const medId = String(c.medicine_id);
+    if (!chanMap.has(medId)) chanMap.set(medId, []);
+    const isAvail =
+      c.available === true ||
+      c.available === 1 ||
+      c.available === "t" ||
+      c.available === "true" ||
+      c.available === "1";
+    chanMap.get(medId)!.push({
+      id: String(c.id),
+      medicine_id: medId,
+      channel: c.channel as ChannelConfig["channel"],
+      lead_time_min_days: Number(c.lead_time_min_days),
+      lead_time_max_days: Number(c.lead_time_max_days),
+      available: isAvail,
+    });
+  }
+
+  const restockMap = new Map<string, RestockEvent[]>();
+  for (const r of restockRows) {
+    const medId = String(r.medicine_id);
+    if (!restockMap.has(medId)) restockMap.set(medId, []);
+    restockMap.get(medId)!.push({
+      id: String(r.id),
+      medicine_id: medId,
+      channel: r.channel as RestockEvent["channel"],
+      pack_count: r.pack_count !== null ? Number(r.pack_count) : null,
+      units_per_pack: r.units_per_pack !== null ? Number(r.units_per_pack) : null,
+      quantity_added: Number(r.quantity_added),
+      ordered_date: toIsoDateString(r.ordered_date),
+      expected_arrival_date: r.expected_arrival_date ? toIsoDateString(r.expected_arrival_date) : null,
+      received_date: r.received_date ? toIsoDateString(r.received_date) : null,
+      cost: r.cost !== null ? Number(r.cost) : null,
+      notes: r.notes ? String(r.notes) : null,
+      created_at: String(r.created_at),
+    });
+  }
+
+  const adjMap = new Map<string, StockAdjustment[]>();
+  for (const a of adjRows) {
+    const medId = String(a.medicine_id);
+    if (!adjMap.has(medId)) adjMap.set(medId, []);
+    adjMap.get(medId)!.push({
+      id: String(a.id),
+      medicine_id: medId,
+      delta: Number(a.delta),
+      reason: a.reason as StockAdjustment["reason"],
+      notes: a.notes ? String(a.notes) : null,
+      date: toIsoDateString(a.date),
+      created_at: String(a.created_at),
+    });
+  }
+
+  const states: CalculatedMedicineState[] = medRows.map((row) => {
+    const medicine: Medicine = {
+      id: String(row.id),
+      name: String(row.name),
+      strength: row.strength ? String(row.strength) : null,
+      form: (row.form as Medicine["form"]) || "tablet",
+      unit_label: String(row.unit_label || "tablets"),
+      units_per_pack: Number(row.units_per_pack || 1),
+      baseline_stock: Number(row.baseline_stock || 0),
+      baseline_date: toIsoDateString(row.baseline_date),
+      safety_buffer_days:
+        row.safety_buffer_days !== null && row.safety_buffer_days !== undefined
+          ? Number(row.safety_buffer_days)
+          : null,
+      notes: row.notes ? String(row.notes) : null,
+      created_at: String(row.created_at),
+      updated_at: String(row.updated_at),
+    };
+
+    const schedules = schedMap.get(medicine.id) || [];
+    const channelConfigs = chanMap.get(medicine.id) || [];
+    const restocks = restockMap.get(medicine.id) || [];
+    const adjustments = adjMap.get(medicine.id) || [];
+
+    return computeMedicineState(
+      medicine,
+      schedules,
+      channelConfigs,
+      restocks,
+      adjustments,
+      settings,
+      referenceDate
+    );
+  });
 
   return { settings, states };
 }
@@ -845,7 +746,6 @@ export async function getAllCalculatedStates(referenceDate: Date = new Date()): 
 // ----------------------------------------------------------------------------
 
 export async function seedSampleData() {
-  await initDb();
   const { isPg, pg, sqlite } = getClients();
 
   // 1. Wipe all existing rows in single batch
@@ -1048,7 +948,7 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning" },
       ],
       channels: [
-        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "apollo", min: 7, max: 10, avail: false },
         { channel: "mr_med", min: 3, max: 5, avail: true },
         { channel: "offline", min: 0, max: 1, avail: true },
       ],
@@ -1074,7 +974,7 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning with water" },
       ],
       channels: [
-        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "apollo", min: 7, max: 10, avail: false },
         { channel: "mr_med", min: 3, max: 5, avail: true },
         { channel: "offline", min: 0, max: 1, avail: true },
       ],
@@ -1092,7 +992,7 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 7, instructions: "Every Saturday subcutaneous" },
       ],
       channels: [
-        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "apollo", min: 7, max: 10, avail: false },
         { channel: "mr_med", min: 3, max: 5, avail: true },
         { channel: "offline", min: 0, max: 1, avail: true },
       ],
@@ -1223,8 +1123,8 @@ export async function seedSampleData() {
           cId,
           m.id,
           c.channel,
-          c.min,
-          c.max,
+          Number(c.min),
+          Number(c.max),
           c.avail ? (isPostgres ? true : 1) : (isPostgres ? false : 0),
         ]
       );
