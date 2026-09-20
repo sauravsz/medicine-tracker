@@ -841,23 +841,38 @@ export async function getAllCalculatedStates(referenceDate: Date = new Date()): 
 }
 
 // ----------------------------------------------------------------------------
-// Seeding User Prescription Data
+// High-Speed Batch Seeding for All 15 Prescription Medicines
 // ----------------------------------------------------------------------------
 
 export async function seedSampleData() {
   await initDb();
-  const existing = await getMedicines();
-  for (const m of existing) {
-    await deleteMedicine(m.id);
+  const { isPg, pg, sqlite } = getClients();
+
+  // 1. Wipe all existing rows in single batch
+  if (isPg && pg) {
+    await pg.unsafe(`
+      DELETE FROM dose_schedules;
+      DELETE FROM channel_configs;
+      DELETE FROM restock_events;
+      DELETE FROM stock_adjustments;
+      DELETE FROM medicines;
+    `);
+  } else if (sqlite) {
+    await sqlite.execute("DELETE FROM dose_schedules;");
+    await sqlite.execute("DELETE FROM channel_configs;");
+    await sqlite.execute("DELETE FROM restock_events;");
+    await sqlite.execute("DELETE FROM stock_adjustments;");
+    await sqlite.execute("DELETE FROM medicines;");
   }
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const medsList = [
     {
+      id: "med_renolog_01",
       name: "Renolog",
       strength: "Alpha Ketoanalogues",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 79,
@@ -868,15 +883,16 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 2, interval_days: 1, instructions: "With dinner" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_rozucor_02",
       name: "Rozucor ASP 10",
       strength: "Rosuvastatin 10mg + Aspirin 75mg",
-      form: "capsule" as const,
+      form: "capsule",
       unit_label: "capsules",
       units_per_pack: 10,
       baseline_stock: 30,
@@ -885,15 +901,16 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 1, interval_days: 1, instructions: "After dinner" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_trajenta_03",
       name: "Trajenta Duo 2.5/500",
       strength: "Linagliptin 2.5mg + Metformin 500mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 10,
       baseline_stock: 53,
@@ -904,15 +921,16 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 1, interval_days: 1, instructions: "With dinner" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_ferronemia_04",
       name: "Ferronemia",
       strength: "100 mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 18,
@@ -922,23 +940,24 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 1, interval_days: 1, instructions: "Night" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
       inTransit: {
-        channel: "mr_med" as const,
+        channel: "mr_med",
         pack_count: 2,
         units_per_pack: 15,
-        quantity_added: 30,
-        expected_arrival_date: "2026-09-24",
+        qty: 30,
+        eta: "2026-09-24",
         notes: "2 strips en route from Mr. Med (Expected 23–25 Sep)",
       },
     },
     {
+      id: "med_nicardiq_05",
       name: "Nicardiq XL 30",
       strength: "30 mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 28,
@@ -947,15 +966,16 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_rabifast_06",
       name: "Rabifast 20",
       strength: "Rabeprazole 20mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 61,
@@ -965,15 +985,16 @@ export async function seedSampleData() {
         { time_of_day: "evening", quantity: 1, interval_days: 1, instructions: "Before evening meal" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_telmaln_07",
       name: "Telma LN 40",
       strength: "Telmisartan 40mg + Cilnidipine 10mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 29,
@@ -983,23 +1004,24 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 1, interval_days: 1, instructions: "Night" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
       inTransit: {
-        channel: "mr_med" as const,
+        channel: "mr_med",
         pack_count: 3,
         units_per_pack: 15,
-        quantity_added: 45,
-        expected_arrival_date: "2026-09-24",
+        qty: 45,
+        eta: "2026-09-24",
         notes: "3 strips en route from Mr. Med (Expected 23–25 Sep)",
       },
     },
     {
+      id: "med_fidotox_08",
       name: "Fidotox Powder",
       strength: "Dietary Toxin Binder",
-      form: "sachet" as const,
+      form: "sachet",
       unit_label: "sachets",
       units_per_pack: 10,
       baseline_stock: 18,
@@ -1008,15 +1030,16 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Mix with water daily" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 10, lead_time_max_days: 14, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 10, max: 14, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_kerendia_09",
       name: "Kerendia",
       strength: "10 mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 14,
       baseline_stock: 0,
@@ -1025,23 +1048,24 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: false },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
       inTransit: {
-        channel: "mr_med" as const,
+        channel: "mr_med",
         pack_count: 2,
         units_per_pack: 14,
-        quantity_added: 28,
-        expected_arrival_date: "2026-09-24",
+        qty: 28,
+        eta: "2026-09-24",
         notes: "2 strips en route from Mr. Med (Expected 23–25 Sep)",
       },
     },
     {
+      id: "med_cudoforte_10",
       name: "Cudo Forte",
       strength: "Probiotic Complex",
-      form: "capsule" as const,
+      form: "capsule",
       unit_label: "capsules",
       units_per_pack: 10,
       baseline_stock: 30,
@@ -1050,15 +1074,16 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning with water" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: false },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_anfoe_11",
       name: "Anfoe 4000 IU",
       strength: "Erythropoietin 4000 IU",
-      form: "injection" as const,
+      form: "injection",
       unit_label: "injections",
       units_per_pack: 1,
       baseline_stock: 2,
@@ -1067,15 +1092,16 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 7, instructions: "Every Saturday subcutaneous" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: false },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_thyronorm50_12",
       name: "Thyronorm 50",
       strength: "50 mcg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 120,
       baseline_stock: 180,
@@ -1084,15 +1110,16 @@ export async function seedSampleData() {
         { time_of_day: "before_breakfast", quantity: 1, interval_days: 1, instructions: "Empty stomach before breakfast" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_thyronorm25_13",
       name: "Thyronorm 25",
       strength: "25 mcg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 120,
       baseline_stock: 60,
@@ -1101,15 +1128,16 @@ export async function seedSampleData() {
         { time_of_day: "before_breakfast", quantity: 1, interval_days: 1, instructions: "Empty stomach before breakfast" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_lantus_14",
       name: "Lantus Cartridge",
       strength: "Insulin Glargine 100 IU/ml (3ml)",
-      form: "other" as const,
+      form: "other",
       unit_label: "units",
       units_per_pack: 300,
       baseline_stock: 200,
@@ -1118,15 +1146,16 @@ export async function seedSampleData() {
         { time_of_day: "night", quantity: 14, interval_days: 1, instructions: "Daily night subcutaneous" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
     {
+      id: "med_dytor_15",
       name: "Dytor 10",
       strength: "Torsemide 10mg",
-      form: "tablet" as const,
+      form: "tablet",
       unit_label: "tablets",
       units_per_pack: 15,
       baseline_stock: 30,
@@ -1135,39 +1164,95 @@ export async function seedSampleData() {
         { time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning after food" },
       ],
       channels: [
-        { channel: "apollo" as const, lead_time_min_days: 7, lead_time_max_days: 10, available: true },
-        { channel: "mr_med" as const, lead_time_min_days: 3, lead_time_max_days: 5, available: true },
-        { channel: "offline" as const, lead_time_min_days: 0, lead_time_max_days: 1, available: true },
+        { channel: "apollo", min: 7, max: 10, avail: true },
+        { channel: "mr_med", min: 3, max: 5, avail: true },
+        { channel: "offline", min: 0, max: 1, avail: true },
       ],
     },
   ];
 
-  for (const item of medsList) {
-    const id = await createMedicine({
-      name: item.name,
-      strength: item.strength,
-      form: item.form,
-      unit_label: item.unit_label,
-      units_per_pack: item.units_per_pack,
-      baseline_stock: item.baseline_stock,
-      baseline_date: todayStr,
-      safety_buffer_days: 2,
-      notes: item.notes,
-      schedules: item.schedules,
-      channel_configs: item.channels,
-    });
+  const now = new Date().toISOString();
 
-    if ("inTransit" in item && item.inTransit) {
-      await logRestock({
-        medicine_id: id,
-        channel: item.inTransit.channel,
-        pack_count: item.inTransit.pack_count,
-        units_per_pack: item.inTransit.units_per_pack,
-        quantity_added: item.inTransit.quantity_added,
-        ordered_date: todayStr,
-        expected_arrival_date: item.inTransit.expected_arrival_date,
-        notes: item.inTransit.notes,
-      });
+  // Execute fast batch inserts
+  for (const m of medsList) {
+    await executeCommand(
+      `
+        INSERT INTO medicines (
+          id, name, strength, form, unit_label, units_per_pack,
+          baseline_stock, baseline_date, safety_buffer_days, notes,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+      [
+        m.id,
+        m.name,
+        m.strength,
+        m.form,
+        m.unit_label,
+        m.units_per_pack,
+        m.baseline_stock,
+        todayStr,
+        2,
+        m.notes,
+        now,
+        now,
+      ]
+    );
+
+    for (const s of m.schedules) {
+      const sId = `sch_${m.id}_${s.time_of_day}`;
+      await executeCommand(
+        `
+          INSERT INTO dose_schedules (
+            id, medicine_id, time_of_day, quantity, interval_days, instructions
+          ) VALUES (?, ?, ?, ?, ?, ?);
+        `,
+        [sId, m.id, s.time_of_day, s.quantity, s.interval_days, s.instructions]
+      );
+    }
+
+    for (const c of m.channels) {
+      const cId = `chn_${m.id}_${c.channel}`;
+      await executeCommand(
+        `
+          INSERT INTO channel_configs (
+            id, medicine_id, channel, lead_time_min_days, lead_time_max_days, available
+          ) VALUES (?, ?, ?, ?, ?, ?);
+        `,
+        [
+          cId,
+          m.id,
+          c.channel,
+          c.min,
+          c.max,
+          c.avail ? (isPostgres ? true : 1) : (isPostgres ? false : 0),
+        ]
+      );
+    }
+
+    if ("inTransit" in m && m.inTransit) {
+      const rId = `rst_${m.id}_transit`;
+      await executeCommand(
+        `
+          INSERT INTO restock_events (
+            id, medicine_id, channel, pack_count, units_per_pack,
+            quantity_added, ordered_date, expected_arrival_date,
+            notes, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `,
+        [
+          rId,
+          m.id,
+          m.inTransit.channel,
+          m.inTransit.pack_count,
+          m.inTransit.units_per_pack,
+          m.inTransit.qty,
+          todayStr,
+          m.inTransit.eta,
+          m.inTransit.notes,
+          now,
+        ]
+      );
     }
   }
 }
