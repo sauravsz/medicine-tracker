@@ -64,7 +64,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   };
 
   const handleTestAi = async () => {
-    setTestAiResult("Testing natural language intent extraction on 'Bought 4 strips of Telma LN 40 from Apollo for 480'...");
+    setTestAiResult("Testing natural language intent extraction...");
     try {
       const res = await fetch("/api/ai/parse", {
         method: "POST",
@@ -100,18 +100,13 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   };
 
   return (
-    <form onSubmit={handleSave} className="space-y-8 max-w-4xl mx-auto pb-16">
+    <form onSubmit={handleSave} className="space-y-6 max-w-4xl mx-auto pb-16">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3 font-sans">
-            <SettingsIcon className="h-7 w-7 text-[#ff385c]" />
-            <span>Settings & Preferences</span>
-          </h1>
-          <p className="text-sm text-[#94a3b8] mt-1">
-            Groq / Ollama Cloud AI configuration, manual model selection, channel lead times, and Supabase database.
-          </p>
-        </div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white flex items-center gap-3 font-sans">
+          <SettingsIcon className="h-7 w-7 text-[#ff385c]" />
+          <span>Settings</span>
+        </h1>
 
         <button
           type="submit"
@@ -124,79 +119,52 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
       </div>
 
       {/* 1. Groq & Ollama Cloud AI Settings */}
-      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+          <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Sparkles className="h-5 w-5" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">AI Assistant Engine (Groq & Ollama Cloud)</h2>
-            <p className="text-[13px] text-[#94a3b8]">
-              Connect Groq or Ollama Cloud API and specify any custom model name
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-white tracking-tight">AI Engine</h2>
         </div>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Provider Tabs */}
-          <div>
-            <label className="block text-[12px] font-bold text-[#cbd5e1] uppercase tracking-wider mb-2">
-              Select AI Provider
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setSettings({ ...settings, ai_provider: "groq" })}
-                className={`p-4 rounded-2xl border text-left transition-all spring-tap ${
-                  settings.ai_provider === "groq" || !settings.ai_provider
-                    ? "border-[#ff385c] bg-[#ff385c]/15 text-white ring-1 ring-[#ff385c]/40 shadow-lg shadow-[#ff385c]/15"
-                    : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
-                }`}
-              >
-                <div className="font-bold text-white flex items-center gap-2">
-                  <Cpu className="h-4 w-4 text-[#ff385c]" />
-                  <span>Groq API (Ultra Fast LPU)</span>
-                </div>
-                <p className="text-[11px] text-[#94a3b8] mt-1">High-speed inference on Groq hardware</p>
-              </button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setSettings({ ...settings, ai_provider: "groq" })}
+              className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
+                settings.ai_provider === "groq" || !settings.ai_provider
+                  ? "border-[#ff385c] bg-[#ff385c]/15 text-white ring-1 ring-[#ff385c]/40 shadow-lg shadow-[#ff385c]/15"
+                  : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
+              }`}
+            >
+              <div className="font-bold text-white flex items-center gap-2 text-xs sm:text-sm">
+                <Cpu className="h-4 w-4 text-[#ff385c]" />
+                <span>Groq LPU</span>
+              </div>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setSettings({ ...settings, ai_provider: "ollama" })}
-                className={`p-4 rounded-2xl border text-left transition-all spring-tap ${
-                  settings.ai_provider === "ollama"
-                    ? "border-[#38bdf8] bg-[#38bdf8]/15 text-white ring-1 ring-[#38bdf8]/40 shadow-lg shadow-[#38bdf8]/15"
-                    : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
-                }`}
-              >
-                <div className="font-bold text-white flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-[#38bdf8]" />
-                  <span>Ollama Cloud / Remote API</span>
-                </div>
-                <p className="text-[11px] text-[#94a3b8] mt-1">Self-hosted or Cloud Ollama endpoint</p>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSettings({ ...settings, ai_provider: "ollama" })}
+              className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
+                settings.ai_provider === "ollama"
+                  ? "border-[#38bdf8] bg-[#38bdf8]/15 text-white ring-1 ring-[#38bdf8]/40 shadow-lg shadow-[#38bdf8]/15"
+                  : "border-white/10 bg-black/30 text-[#94a3b8] hover:border-white/20"
+              }`}
+            >
+              <div className="font-bold text-white flex items-center gap-2 text-xs sm:text-sm">
+                <Globe className="h-4 w-4 text-[#38bdf8]" />
+                <span>Ollama Cloud / Remote</span>
+              </div>
+            </button>
           </div>
 
           {/* GROQ CONFIGURATION */}
           {(settings.ai_provider === "groq" || !settings.ai_provider) && (
-            <div className="p-5 rounded-2xl bg-black/30 border border-white/10 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <Key className="h-3.5 w-3.5 text-[#ff385c]" />
-                  <span>Groq Configuration</span>
-                </span>
-                <a
-                  href="https://console.groq.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[11px] text-[#38bdf8] hover:underline"
-                >
-                  Get free key at console.groq.com →
-                </a>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
                     Groq API Key
@@ -206,24 +174,21 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     placeholder="gsk_..."
                     value={settings.groq_api_key || ""}
                     onChange={(e) => setSettings({ ...settings, groq_api_key: e.target.value })}
-                    className="w-full liquid-glass-input rounded-xl px-4 py-2.5 text-sm text-white font-mono"
+                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Model Name (Manual Input)
+                    Model Name
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. llama-3.3-70b-versatile"
+                    placeholder="llama-3.3-70b-versatile"
                     value={settings.groq_model || "llama-3.3-70b-versatile"}
                     onChange={(e) => setSettings({ ...settings, groq_model: e.target.value })}
-                    className="w-full liquid-glass-input rounded-xl px-4 py-2.5 text-sm text-white font-mono"
+                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
-                  <p className="text-[10px] text-[#64748b] mt-1">
-                    Examples: <code>llama-3.3-70b-versatile</code>, <code>llama-3.1-8b-instant</code>, <code>mixtral-8x7b-32768</code>
-                  </p>
                 </div>
               </div>
             </div>
@@ -231,107 +196,86 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
           {/* OLLAMA CONFIGURATION */}
           {settings.ai_provider === "ollama" && (
-            <div className="p-5 rounded-2xl bg-black/30 border border-white/10 space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-[#38bdf8]" />
-                  <span>Ollama Cloud / Endpoint Configuration</span>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl bg-black/30 border border-white/10 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Ollama Base URL
+                    Base URL
                   </label>
                   <input
                     type="text"
-                    placeholder="https://ollama.com or http://localhost:11434"
+                    placeholder="https://ollama.com"
                     value={settings.ollama_base_url || "https://ollama.com"}
                     onChange={(e) => setSettings({ ...settings, ollama_base_url: e.target.value })}
-                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                    className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    API Key (Optional / Bearer)
+                    API Key
                   </label>
                   <input
                     type="password"
-                    placeholder="Bearer token or leave empty"
+                    placeholder="Optional token"
                     value={settings.ollama_api_key || ""}
                     onChange={(e) => setSettings({ ...settings, ollama_api_key: e.target.value })}
-                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                    className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
-                    Model Name (Manual Input)
+                    Model Name
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. llama3.3, qwen2.5, deepseek-r1"
+                    placeholder="llama3.3"
                     value={settings.ollama_model || "llama3.3"}
                     onChange={(e) => setSettings({ ...settings, ollama_model: e.target.value })}
-                    className="w-full liquid-glass-input rounded-xl px-3.5 py-2.5 text-sm text-white font-mono"
+                    className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
                 </div>
               </div>
-              <p className="text-[10px] text-[#64748b]">
-                Examples: <code>llama3.3</code>, <code>qwen2.5-coder</code>, <code>mistral</code>, <code>deepseek-r1</code>
-              </p>
             </div>
           )}
 
-          {/* Test AI Button */}
-          <div className="p-4 rounded-2xl bg-black/40 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-xs font-bold text-white block">Test AI Intent Parser</span>
-              <span className="text-[12px] text-[#94a3b8]">
-                Sends a test sentence to verify {settings.ai_provider === "ollama" ? "Ollama Cloud" : "Groq"} extraction
-              </span>
-            </div>
+          {/* Test AI */}
+          <div className="flex items-center justify-between pt-1">
             <button
               type="button"
               onClick={handleTestAi}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
             >
               <Sparkles className="h-3.5 w-3.5 text-[#ff385c]" />
-              <span>Test Intent Extraction</span>
+              <span>Test AI Intent Parser</span>
             </button>
           </div>
 
           {testAiResult && (
-            <div className="p-3.5 rounded-2xl bg-black/40 border border-white/10 text-xs font-mono text-[#34d399] leading-relaxed">
+            <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-xs font-mono text-[#34d399] leading-relaxed">
               {testAiResult}
             </div>
           )}
         </div>
       </section>
 
-      {/* 2. Global Channel Lead Times */}
-      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+      {/* 2. Channel Lead Times */}
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-5">
+        <div className="flex items-center gap-3 pb-3 border-b border-white/10">
+          <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
             <Building2 className="h-5 w-5" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Default Channel Delivery Windows</h2>
-            <p className="text-[13px] text-[#94a3b8]">
-              Global delivery turnaround applied when calculating order-by deadlines
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-white tracking-tight">Channel Lead Times</h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Apollo */}
-          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
+          <div className="p-3.5 rounded-2xl bg-black/30 border border-white/5 space-y-2">
             <span className="font-bold text-xs text-white block">Apollo 24|7 (Online)</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Min Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Min Days</label>
                 <input
                   type="number"
                   min="0"
@@ -343,7 +287,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Max Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Max Days</label>
                 <input
                   type="number"
                   min="1"
@@ -355,15 +299,14 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[#64748b]">Default: 7–10 days</p>
           </div>
 
           {/* Mr. Med */}
-          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
+          <div className="p-3.5 rounded-2xl bg-black/30 border border-white/5 space-y-2">
             <span className="font-bold text-xs text-white block">Mr. Med (Online)</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Min Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Min Days</label>
                 <input
                   type="number"
                   min="0"
@@ -375,7 +318,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Max Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Max Days</label>
                 <input
                   type="number"
                   min="1"
@@ -387,15 +330,14 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[#64748b]">Default: 3–5 days</p>
           </div>
 
           {/* Offline Store */}
-          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 space-y-3">
+          <div className="p-3.5 rounded-2xl bg-black/30 border border-white/5 space-y-2">
             <span className="font-bold text-xs text-white block">Offline Local Store</span>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Min Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Min Days</label>
                 <input
                   type="number"
                   min="0"
@@ -407,7 +349,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-[#94a3b8] block mb-1">Max Days</label>
+                <label className="text-[10px] font-bold text-[#94a3b8] block mb-0.5">Max Days</label>
                 <input
                   type="number"
                   min="0"
@@ -419,18 +361,12 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                 />
               </div>
             </div>
-            <p className="text-[11px] text-[#64748b]">Default: 0–1 days</p>
           </div>
         </div>
 
         {/* Global Safety Buffer */}
-        <div className="p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-bold text-white block">Global Safety Buffer (Days)</span>
-            <p className="text-[12px] text-[#94a3b8] mt-0.5">
-              Additional cushion added to lead times to prevent running out during transit delays
-            </p>
-          </div>
+        <div className="p-3.5 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between">
+          <span className="text-xs font-bold text-white">Global Safety Buffer</span>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -440,136 +376,107 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               onChange={(e) =>
                 setSettings({ ...settings, default_safety_buffer_days: parseInt(e.target.value) || 0 })
               }
-              className="w-20 liquid-glass-input rounded-xl px-3 py-1.5 text-sm text-white font-mono text-center font-bold"
+              className="w-16 liquid-glass-input rounded-xl px-2.5 py-1 text-xs text-white font-mono text-center font-bold"
             />
             <span className="text-xs text-[#94a3b8] font-mono">days</span>
           </div>
         </div>
       </section>
 
-      {/* 3. Daily Reminders & Email Digest */}
-      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
-            <Bell className="h-5 w-5" />
+      {/* 3. Daily Reminders */}
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+              <Bell className="h-5 w-5" />
+            </div>
+            <h2 className="text-base font-bold text-white tracking-tight">Daily Reorder Digest</h2>
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Automated Daily Reorder Digest</h2>
-            <p className="text-[13px] text-[#94a3b8]">
-              Evaluates inventory every morning and sends a single email when any medicine requires reordering
-            </p>
-          </div>
+
+          <button
+            type="button"
+            onClick={() => setSettings({ ...settings, reminders_enabled: !settings.reminders_enabled })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              settings.reminders_enabled ? "bg-[#ff385c]" : "bg-white/20"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                settings.reminders_enabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-black/30 border border-white/5">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <span className="text-xs font-bold text-white block">Enable Daily Reorder Digest</span>
-              <span className="text-[12px] text-[#94a3b8]">
-                Only sends on days when at least one medicine has reached Yellow, Orange, or Red status
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSettings({ ...settings, reminders_enabled: !settings.reminders_enabled })}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                settings.reminders_enabled ? "bg-[#ff385c]" : "bg-white/20"
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  settings.reminders_enabled ? "translate-x-6" : "translate-x-1"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[12px] font-bold text-[#cbd5e1] mb-1.5">
-                Recipient Email Address
+              <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                Recipient Email
               </label>
               <input
                 type="email"
                 placeholder="your.email@gmail.com"
                 value={settings.reminder_email || ""}
                 onChange={(e) => setSettings({ ...settings, reminder_email: e.target.value })}
-                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
+                className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-[12px] font-bold text-[#cbd5e1] mb-1.5">
-                Daily Cron Trigger Time
+              <label className="block text-[11px] font-bold text-[#cbd5e1] mb-1">
+                Dispatch Time
               </label>
               <input
                 type="time"
                 value={settings.reminder_time}
                 onChange={(e) => setSettings({ ...settings, reminder_time: e.target.value })}
-                className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
+                className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
               />
             </div>
           </div>
 
-          {/* Test Trigger */}
-          <div className="p-4 rounded-2xl bg-black/30 border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <span className="text-xs font-bold text-white block">Test Cron Route</span>
-              <span className="text-[12px] text-[#94a3b8]">
-                Executes the <code>/api/cron/daily-digest</code> inventory evaluation immediately
-              </span>
-            </div>
+          <div className="flex items-center justify-between pt-1">
             <button
               type="button"
               onClick={handleTestCron}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
             >
               <Send className="h-3.5 w-3.5 text-[#ff385c]" />
-              <span>Run Digest Now</span>
+              <span>Run Test Digest</span>
             </button>
           </div>
 
           {testCronResult && (
-            <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono text-[#38bdf8]">
+            <div className="p-3 rounded-2xl bg-black/40 border border-white/10 text-xs font-mono text-[#38bdf8]">
               {testCronResult}
             </div>
           )}
         </div>
       </section>
 
-      {/* 4. Supabase & Database Setup */}
-      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+      {/* 4. Supabase Database Schema */}
+      <section className="liquid-glass-panel rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
+            <div className="p-2 rounded-2xl bg-[#ff385c]/15 text-[#ff4d6d] border border-[#ff385c]/30">
               <Database className="h-5 w-5" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Database & Supabase Deployment</h2>
-              <p className="text-[13px] text-[#94a3b8]">
-                One-click Supabase Postgres SQL migration script ready to paste in Supabase SQL Editor
-              </p>
-            </div>
+            <h2 className="text-base font-bold text-white tracking-tight">Supabase Schema</h2>
           </div>
 
           <button
             type="button"
             onClick={handleCopySql}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white liquid-glass-pill rounded-full transition-colors spring-tap"
           >
             {copiedSql ? <Check className="h-3.5 w-3.5 text-[#34d399]" /> : <Copy className="h-3.5 w-3.5 text-[#94a3b8]" />}
-            <span>{copiedSql ? "Copied SQL!" : "Copy Supabase SQL"}</span>
+            <span>{copiedSql ? "Copied!" : "Copy SQL"}</span>
           </button>
         </div>
 
-        <div className="space-y-3">
-          <p className="text-xs text-[#94a3b8] leading-relaxed">
-            When you create your project on Supabase, navigate to <strong>SQL Editor</strong>, paste the schema script below and click Run. Then add your Supabase connection string to <code>DATABASE_URL</code> in Vercel.
-          </p>
-
-          <div className="relative rounded-2xl bg-black/50 border border-white/10 p-4 font-mono text-[11px] text-[#cbd5e1] max-h-60 overflow-y-auto">
-            <pre>{sqlSchema}</pre>
-          </div>
+        <div className="relative rounded-2xl bg-black/50 border border-white/10 p-4 font-mono text-[11px] text-[#cbd5e1] max-h-48 overflow-y-auto">
+          <pre>{sqlSchema}</pre>
         </div>
       </section>
     </form>

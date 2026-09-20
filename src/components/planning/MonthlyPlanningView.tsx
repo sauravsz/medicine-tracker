@@ -41,9 +41,6 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
               30-Day Math
             </span>
           </h1>
-          <p className="text-sm text-[#94a3b8] mt-1">
-            Exact monthly strip/pack requirement based on prescribed daily frequency and packaging units.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -71,9 +68,6 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                 7–10d Lead
               </span>
             </div>
-            <p className="text-xs text-[#94a3b8] leading-relaxed">
-              Order chronic supplies 12–14 days in advance to maximize discounts.
-            </p>
 
             <div className="my-4 p-4 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between">
               <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
@@ -100,9 +94,6 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                 3–5d Lead
               </span>
             </div>
-            <p className="text-xs text-[#94a3b8] leading-relaxed">
-              Fast online delivery for specialty chronic meds when Apollo cutoff passed.
-            </p>
 
             <div className="my-4 p-4 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between">
               <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
@@ -129,9 +120,6 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                 0–1d Immediate
               </span>
             </div>
-            <p className="text-xs text-[#94a3b8] leading-relaxed">
-              Walk-in purchase for emergency gaps or medications unavailable online.
-            </p>
 
             <div className="my-4 p-4 rounded-2xl bg-black/30 border border-white/5 flex items-center justify-between">
               <span className="text-xs font-medium text-[#94a3b8]">Monthly Meds:</span>
@@ -155,9 +143,6 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
               <Layers className="h-5 w-5 text-[#ff385c]" />
               <span>30-Day Pack & Strip Calculator</span>
             </h2>
-            <p className="text-xs text-[#94a3b8] mt-0.5">
-              Calculates exact whole-pack purchase quantities given prescribed daily dose and pack size.
-            </p>
           </div>
 
           <div className="flex items-center gap-2">

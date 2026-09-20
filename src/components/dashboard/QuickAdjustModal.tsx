@@ -111,10 +111,6 @@ export function QuickAdjustModal({ item, onClose, onSuccess }: QuickAdjustModalP
                 className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-base font-bold text-white font-mono"
                 required
               />
-              <p className="text-[11px] text-[#94a3b8] mt-1.5 font-medium">
-                Adjusts stock by {calculatedDelta >= 0 ? `+${calculatedDelta}` : calculatedDelta}{" "}
-                {item.medicine.unit_label} and resets anchor to today.
-              </p>
             </div>
           ) : (
             <>

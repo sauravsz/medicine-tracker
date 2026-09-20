@@ -207,7 +207,6 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
               <span className="text-3xl font-black font-mono text-white">{state.on_hand_stock}</span>
               <span className="text-xs text-[#94a3b8]">{medicine.unit_label}</span>
             </div>
-            <span className="text-[11px] text-[#64748b] mt-1 block">Live balance</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-md">
@@ -237,9 +236,6 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
               <span className="text-3xl font-black font-mono text-white">{state.daily_consumption}</span>
               <span className="text-xs text-[#94a3b8]">{medicine.unit_label}/d</span>
             </div>
-            <span className="text-[11px] text-[#64748b] mt-1 block">
-              {schedules.length} slot(s)
-            </span>
           </div>
 
           <div className="p-4 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-md">
@@ -252,9 +248,6 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
                 pk ({state.monthly_planning.monthly_units} {medicine.unit_label})
               </span>
             </div>
-            <span className="text-[11px] text-[#64748b] mt-1 block">
-              {medicine.units_per_pack} {medicine.unit_label}/pack
-            </span>
           </div>
         </div>
 
@@ -292,9 +285,6 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
               <Building2 className="h-4 w-4 text-[#ff385c]" />
               <span>Channel Lead-Time Deadlines</span>
             </h2>
-            <p className="text-xs text-[#94a3b8] mb-4">
-              Latest safe order date factoring lead time and safety buffer ({state.deadlines[0]?.safety_buffer_days || 2}d)
-            </p>
 
             <div className="space-y-3">
               {state.deadlines.map((dl) => {
@@ -380,9 +370,6 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
               </h2>
               <span className="text-xs font-mono text-[#94a3b8]">-{state.daily_consumption} {medicine.unit_label}/day</span>
             </div>
-            <p className="text-xs text-[#94a3b8] mb-6">
-              Projected inventory curve with safe reorder buffer zone
-            </p>
 
             {/* Custom SVG stock burn-down chart */}
             <div className="bg-black/30 rounded-2xl p-4 border border-white/10 backdrop-blur-md">

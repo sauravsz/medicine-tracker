@@ -138,9 +138,6 @@ export function AIConfirmationModal({
                   {Math.round(payload.confidence * 100)}% Confidence
                 </span>
               </div>
-              <p className="text-[12px] text-[#94a3b8] mt-0.5">
-                Review extracted values and adjust before writing to Supabase
-              </p>
             </div>
           </div>
           <button

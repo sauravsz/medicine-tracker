@@ -185,9 +185,6 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-white/[0.04] border border-white/10">
             <div>
               <span className="text-xs font-bold text-white block">Delivered / In Hand?</span>
-              <span className="text-[11px] text-[#94a3b8]">
-                {isReceived ? "Stock increases immediately on-hand" : "Marked as in transit (mutes alerts)"}
-              </span>
             </div>
             <button
               type="button"

@@ -165,7 +165,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">Medicine Profile</h2>
-            <p className="text-[13px] text-[#94a3b8]">Pharmaceutical formulation, form, and packaging size</p>
           </div>
         </div>
 
@@ -239,7 +238,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               onChange={(e) => setUnitsPerPack(parseInt(e.target.value) || 1)}
               className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
-            <p className="text-[11px] text-[#94a3b8] mt-1">e.g. 10 or 15 tabs/strip, 120 tabs/bottle</p>
           </div>
         </div>
       </section>
@@ -253,7 +251,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-white tracking-tight">Dosage Schedule</h2>
-              <p className="text-[13px] text-[#94a3b8]">Prescription timings, fractional doses, and frequency</p>
             </div>
           </div>
 
@@ -379,9 +376,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">Current Physical Stock Anchor</h2>
-            <p className="text-[13px] text-[#94a3b8]">
-              Exact physical units in hand for continuous time-anchored stock depletion
-            </p>
           </div>
         </div>
 
@@ -428,7 +422,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
               onChange={(e) => setSafetyBuffer(e.target.value)}
               className="w-full liquid-glass-input rounded-2xl px-4 py-2.5 text-sm text-white font-mono"
             />
-            <p className="text-[11px] text-[#94a3b8] mt-1">Leave empty to inherit global default (2 days)</p>
           </div>
         </div>
       </section>
@@ -441,9 +434,6 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">Purchase Channels & Lead Times</h2>
-            <p className="text-[13px] text-[#94a3b8]">
-              Delivery lead times and availability for this specific medicine
-            </p>
           </div>
         </div>
 

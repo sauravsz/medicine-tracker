@@ -20,23 +20,20 @@ export default async function EditMedicinePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#090c14] text-white">
       <Navbar />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-6 max-w-4xl mx-auto">
           <Link
             href={`/medicines/${id}`}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-teal-300 transition-colors mb-2"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#94a3b8] hover:text-white transition-colors mb-2 spring-tap"
           >
             <ChevronLeft className="h-4 w-4" />
-            <span>Back to Medicine Details</span>
+            <span>Back to Details</span>
           </Link>
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Edit {data.full.medicine.name}
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Update dosage schedules, packaging units, and channel lead-time overrides.
-          </p>
         </div>
 
         <MedicineForm initialData={data.full} />

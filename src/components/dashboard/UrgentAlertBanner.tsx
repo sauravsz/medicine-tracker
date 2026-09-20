@@ -56,9 +56,6 @@ export function UrgentAlertBanner({ medicines, onRestockClick }: UrgentAlertBann
             </span>
           </div>
 
-          <p className="text-[13px] text-[#cbd5e1] mt-1 leading-relaxed font-normal">
-            Apollo 24|7 takes 7–10 days (Fidotox takes 14 days) and Mr. Med takes 3–5 days. Reorder now to maintain safety buffer.
-          </p>
 
           <div className="mt-3.5 divide-y divide-white/5 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden">
             {urgentList.map((item) => (
