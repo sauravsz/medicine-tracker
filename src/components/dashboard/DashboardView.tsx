@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import {
   Search,
-  SlidersHorizontal,
+  LayoutGrid,
+  List,
   Plus,
   Pill,
 } from "lucide-react";
@@ -12,6 +13,7 @@ import { CalculatedMedicineState, DashboardSummary } from "@/lib/types";
 import { StatCards } from "./StatCards";
 import { UrgentAlertBanner } from "./UrgentAlertBanner";
 import { MedicineCard } from "./MedicineCard";
+import { MedicineTableView } from "./MedicineTableView";
 import { QuickRestockModal } from "./QuickRestockModal";
 import { QuickAdjustModal } from "./QuickAdjustModal";
 
@@ -26,6 +28,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"urgency" | "days_left" | "name" | "stock">("urgency");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   const [selectedForRestock, setSelectedForRestock] = useState<CalculatedMedicineState | null>(null);
   const [selectedForAdjust, setSelectedForAdjust] = useState<CalculatedMedicineState | null>(null);
@@ -42,6 +45,9 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         if (!matchesSearch) return false;
 
         if (statusFilter === "all") return true;
+        if (statusFilter === "URGENT") {
+          return item.urgency === "CRITICAL" || item.urgency === "ORDER_NOW" || item.urgency === "ORDER_SOON";
+        }
         if (statusFilter === "IN_TRANSIT") return item.in_transit.orders.length > 0;
         return item.urgency === statusFilter;
       })
@@ -67,12 +73,36 @@ export function DashboardView({ initialData }: DashboardViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Stat Summary Cards */}
-      <StatCards
-        summary={summary}
-        activeFilter={statusFilter}
-        onSelectFilter={(f) => setStatusFilter(f)}
-      />
+      {/* Top Filter Chips & View Mode Toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <StatCards
+          summary={summary}
+          activeFilter={statusFilter}
+          onSelectFilter={(f) => setStatusFilter(f)}
+        />
+
+        {/* Grid vs Table Switcher */}
+        <div className="flex items-center gap-1 p-1 bg-[#131722] border border-[#1e2536] rounded-full shrink-0 self-end sm:self-auto">
+          <button
+            onClick={() => setViewMode("grid")}
+            title="Grid View"
+            className={`p-2 rounded-full transition-colors ${
+              viewMode === "grid" ? "bg-[#1c2333] text-white" : "text-[#64748b] hover:text-[#94a3b8]"
+            }`}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("table")}
+            title="Dense Table View"
+            className={`p-2 rounded-full transition-colors ${
+              viewMode === "table" ? "bg-[#1c2333] text-white" : "text-[#64748b] hover:text-[#94a3b8]"
+            }`}
+          >
+            <List className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
 
       {/* Urgent Alert Banner */}
       <UrgentAlertBanner
@@ -80,77 +110,40 @@ export function DashboardView({ initialData }: DashboardViewProps) {
         onRestockClick={(item) => setSelectedForRestock(item)}
       />
 
-      {/* Airbnb Signature Dark Pill Search Bar */}
-      <div className="bg-[#131722] rounded-full border border-[#222a3a] h-16 p-2 shadow-lg shadow-black/30 flex items-center justify-between transition-all hover:border-[#333e54]">
-        {/* Segment 1: Search Name */}
-        <div className="flex-1 flex items-center px-4 sm:px-6">
-          <div className="w-full">
-            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
-              Search Medicine
-            </span>
-            <input
-              type="text"
-              placeholder="Thyronorm, Telma 40, Glycomet..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-[13px] text-white placeholder:text-[#64748b] focus:outline-none -mt-0.5 font-medium"
-            />
-          </div>
+      {/* Search & Sort Toolbar */}
+      <div className="bg-[#131722] rounded-full border border-[#222a3a] h-14 p-1.5 shadow-lg shadow-black/20 flex items-center justify-between transition-all hover:border-[#333e54]">
+        {/* Search Input */}
+        <div className="flex-1 flex items-center px-4">
+          <Search className="h-4 w-4 text-[#64748b] mr-2.5 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search medicine by name, dose, or strength..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-transparent text-[13px] text-white placeholder:text-[#64748b] focus:outline-none font-medium"
+          />
         </div>
 
         {/* Divider hairline */}
-        <div className="hidden sm:block h-8 w-[1px] bg-[#222a3a]" />
+        <div className="hidden sm:block h-6 w-[1px] bg-[#222a3a]" />
 
-        {/* Segment 2: Sort */}
-        <div className="hidden sm:flex items-center px-6">
-          <div>
-            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
-              Sort By
-            </span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-transparent text-[13px] text-[#cbd5e1] font-medium focus:outline-none cursor-pointer -mt-0.5"
-            >
-              <option value="urgency" className="bg-[#131722] text-white">Urgency (Critical first)</option>
-              <option value="days_left" className="bg-[#131722] text-white">Days Left (Lowest)</option>
-              <option value="stock" className="bg-[#131722] text-white">On-hand Stock</option>
-              <option value="name" className="bg-[#131722] text-white">Name (A-Z)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Divider hairline */}
-        <div className="hidden md:block h-8 w-[1px] bg-[#222a3a]" />
-
-        {/* Segment 3: Filter */}
-        <div className="hidden md:flex items-center px-6">
-          <div>
-            <span className="block text-[11px] font-bold text-[#cbd5e1] uppercase tracking-wider">
-              Filter Status
-            </span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent text-[13px] text-[#cbd5e1] font-medium focus:outline-none cursor-pointer -mt-0.5"
-            >
-              <option value="all" className="bg-[#131722] text-white">All Medicines</option>
-              <option value="CRITICAL" className="bg-[#131722] text-white">Critical Only</option>
-              <option value="ORDER_NOW" className="bg-[#131722] text-white">Order Now (Offline)</option>
-              <option value="ORDER_SOON" className="bg-[#131722] text-white">Order Soon (Mr. Med)</option>
-              <option value="OK" className="bg-[#131722] text-white">Healthy Stock (OK)</option>
-              <option value="IN_TRANSIT" className="bg-[#131722] text-white">In Transit</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Search Orb (Airbnb signature Rausch orb) */}
-        <div className="h-12 w-12 rounded-full bg-[#ff385c] hover:bg-[#e00b41] text-white flex items-center justify-center shrink-0 shadow-md shadow-[#ff385c]/30 transition-transform active:scale-95 cursor-pointer">
-          <Search className="h-4 w-4 stroke-[2.5]" />
+        {/* Sort selector */}
+        <div className="hidden sm:flex items-center px-4 text-xs">
+          <span className="text-[#64748b] mr-2">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+            className="bg-transparent text-[12px] text-[#cbd5e1] font-semibold focus:outline-none cursor-pointer"
+          >
+            <option value="urgency" className="bg-[#131722] text-white">Urgency (Lowest stock)</option>
+            <option value="days_left" className="bg-[#131722] text-white">Days Left</option>
+            <option value="stock" className="bg-[#131722] text-white">Current Stock</option>
+            <option value="name" className="bg-[#131722] text-white">Name (A–Z)</option>
+          </select>
         </div>
       </div>
 
-      {/* Grid of Medicines */}
+      {/* Main Content: Grid or Table View */}
       {filteredMedicines.length === 0 ? (
         <div className="rounded-3xl border border-[#1e2536] bg-[#131722] p-12 text-center shadow-lg">
           <div className="mx-auto h-14 w-14 rounded-full bg-[#1c2333] flex items-center justify-center text-[#94a3b8] mb-3">
@@ -172,7 +165,7 @@ export function DashboardView({ initialData }: DashboardViewProps) {
             </Link>
           </div>
         </div>
-      ) : (
+      ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredMedicines.map((item) => (
             <MedicineCard
@@ -183,6 +176,12 @@ export function DashboardView({ initialData }: DashboardViewProps) {
             />
           ))}
         </div>
+      ) : (
+        <MedicineTableView
+          medicines={filteredMedicines}
+          onRestockClick={(it) => setSelectedForRestock(it)}
+          onAdjustClick={(it) => setSelectedForAdjust(it)}
+        />
       )}
 
       {/* Modals */}
