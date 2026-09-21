@@ -114,7 +114,7 @@ export async function GET(request: Request) {
         </div>
 
         <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center;">
-          Sent by personal MedTrack personal health assistant.
+          Sent by personal TrackMed health assistant.
         </div>
       </div>
     `;

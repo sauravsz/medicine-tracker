@@ -47,7 +47,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="MedTrack" />
+        <meta name="apple-mobile-web-app-title" content="TrackMed" />
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
       <body className="min-h-full flex flex-col bg-[#090c14] text-white relative">
