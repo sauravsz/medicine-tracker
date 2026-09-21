@@ -43,12 +43,12 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
   // 1. Load client-side browser storage on mount
   useEffect(() => {
     try {
-      const gKey = localStorage.getItem("medtrack_groq_api_key");
-      const gModel = localStorage.getItem("medtrack_groq_model");
-      const oKey = localStorage.getItem("medtrack_ollama_api_key");
-      const oUrl = localStorage.getItem("medtrack_ollama_base_url");
-      const oModel = localStorage.getItem("medtrack_ollama_model");
-      const prov = localStorage.getItem("medtrack_ai_provider");
+      const gKey = localStorage.getItem("trackmed_groq_api_key") ?? localStorage.getItem("medtrack_groq_api_key");
+      const gModel = localStorage.getItem("trackmed_groq_model") ?? localStorage.getItem("medtrack_groq_model");
+      const oKey = localStorage.getItem("trackmed_ollama_api_key") ?? localStorage.getItem("medtrack_ollama_api_key");
+      const oUrl = localStorage.getItem("trackmed_ollama_base_url") ?? localStorage.getItem("medtrack_ollama_base_url");
+      const oModel = localStorage.getItem("trackmed_ollama_model") ?? localStorage.getItem("medtrack_ollama_model");
+      const prov = localStorage.getItem("trackmed_ai_provider") ?? localStorage.getItem("medtrack_ai_provider");
 
       setSettings((prev) => ({
         ...prev,
@@ -73,12 +73,12 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
 
     // 2. Persist to browser localStorage
     try {
-      localStorage.setItem("medtrack_groq_api_key", settings.groq_api_key || "");
-      localStorage.setItem("medtrack_groq_model", settings.groq_model || "openai/gpt-oss-120b");
-      localStorage.setItem("medtrack_ollama_api_key", settings.ollama_api_key || "");
-      localStorage.setItem("medtrack_ollama_base_url", settings.ollama_base_url || "https://ollama.com");
-      localStorage.setItem("medtrack_ollama_model", settings.ollama_model || "ollamacloud/gemma4:31b");
-      localStorage.setItem("medtrack_ai_provider", settings.ai_provider || "groq");
+      localStorage.setItem("trackmed_groq_api_key", settings.groq_api_key || "");
+      localStorage.setItem("trackmed_groq_model", settings.groq_model || "openai/gpt-oss-120b");
+      localStorage.setItem("trackmed_ollama_api_key", settings.ollama_api_key || "");
+      localStorage.setItem("trackmed_ollama_base_url", settings.ollama_base_url || "https://ollama.com");
+      localStorage.setItem("trackmed_ollama_model", settings.ollama_model || "ollamacloud/gemma4:31b");
+      localStorage.setItem("trackmed_ai_provider", settings.ai_provider || "groq");
     } catch {}
 
     // 3. Save standard settings to server safely
@@ -193,7 +193,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               onClick={() => {
                 const prov = "groq";
                 setSettings({ ...settings, ai_provider: prov });
-                try { localStorage.setItem("medtrack_ai_provider", prov); } catch {}
+                try { localStorage.setItem("trackmed_ai_provider", prov); } catch {}
               }}
               className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
                 settings.ai_provider === "groq" || !settings.ai_provider
@@ -212,7 +212,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
               onClick={() => {
                 const prov = "ollama";
                 setSettings({ ...settings, ai_provider: prov });
-                try { localStorage.setItem("medtrack_ai_provider", prov); } catch {}
+                try { localStorage.setItem("trackmed_ai_provider", prov); } catch {}
               }}
               className={`p-3.5 rounded-2xl border text-left transition-all spring-tap ${
                 settings.ai_provider === "ollama"
@@ -242,7 +242,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     onChange={(e) => {
                       const val = e.target.value;
                       setSettings({ ...settings, groq_api_key: val });
-                      try { localStorage.setItem("medtrack_groq_api_key", val); } catch {}
+                      try { localStorage.setItem("trackmed_groq_api_key", val); } catch {}
                     }}
                     className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
@@ -259,7 +259,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     onChange={(e) => {
                       const val = e.target.value;
                       setSettings({ ...settings, groq_model: val });
-                      try { localStorage.setItem("medtrack_groq_model", val); } catch {}
+                      try { localStorage.setItem("trackmed_groq_model", val); } catch {}
                     }}
                     className="w-full liquid-glass-input rounded-xl px-3.5 py-2 text-xs text-white font-mono"
                   />
@@ -279,7 +279,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                       type="button"
                       onClick={() => {
                         setSettings({ ...settings, groq_model: p.id });
-                        try { localStorage.setItem("medtrack_groq_model", p.id); } catch {}
+                        try { localStorage.setItem("trackmed_groq_model", p.id); } catch {}
                       }}
                       className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected
@@ -310,7 +310,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     onChange={(e) => {
                       const val = e.target.value;
                       setSettings({ ...settings, ollama_base_url: val });
-                      try { localStorage.setItem("medtrack_ollama_base_url", val); } catch {}
+                      try { localStorage.setItem("trackmed_ollama_base_url", val); } catch {}
                     }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
@@ -327,7 +327,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     onChange={(e) => {
                       const val = e.target.value;
                       setSettings({ ...settings, ollama_api_key: val });
-                      try { localStorage.setItem("medtrack_ollama_api_key", val); } catch {}
+                      try { localStorage.setItem("trackmed_ollama_api_key", val); } catch {}
                     }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
@@ -344,7 +344,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                     onChange={(e) => {
                       const val = e.target.value;
                       setSettings({ ...settings, ollama_model: val });
-                      try { localStorage.setItem("medtrack_ollama_model", val); } catch {}
+                      try { localStorage.setItem("trackmed_ollama_model", val); } catch {}
                     }}
                     className="w-full liquid-glass-input rounded-xl px-3 py-2 text-xs text-white font-mono"
                   />
@@ -364,7 +364,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
                       type="button"
                       onClick={() => {
                         setSettings({ ...settings, ollama_model: p.id });
-                        try { localStorage.setItem("medtrack_ollama_model", p.id); } catch {}
+                        try { localStorage.setItem("trackmed_ollama_model", p.id); } catch {}
                       }}
                       className={`px-3 py-1 rounded-full text-[11px] font-mono transition-all spring-tap ${
                         isSelected

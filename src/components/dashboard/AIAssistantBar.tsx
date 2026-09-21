@@ -74,12 +74,12 @@ export function AIAssistantBar({ onParsedCommand }: AIAssistantBarProps) {
       try {
         let clientConfig: Record<string, string> = {};
         try {
-          const gKey = localStorage.getItem("medtrack_groq_api_key");
-          const gModel = localStorage.getItem("medtrack_groq_model");
-          const oKey = localStorage.getItem("medtrack_ollama_api_key");
-          const oUrl = localStorage.getItem("medtrack_ollama_base_url");
-          const oModel = localStorage.getItem("medtrack_ollama_model");
-          const prov = localStorage.getItem("medtrack_ai_provider");
+          const gKey = localStorage.getItem("trackmed_groq_api_key") || localStorage.getItem("medtrack_groq_api_key");
+          const gModel = localStorage.getItem("trackmed_groq_model") || localStorage.getItem("medtrack_groq_model");
+          const oKey = localStorage.getItem("trackmed_ollama_api_key") || localStorage.getItem("medtrack_ollama_api_key");
+          const oUrl = localStorage.getItem("trackmed_ollama_base_url") || localStorage.getItem("medtrack_ollama_base_url");
+          const oModel = localStorage.getItem("trackmed_ollama_model") || localStorage.getItem("medtrack_ollama_model");
+          const prov = localStorage.getItem("trackmed_ai_provider") || localStorage.getItem("medtrack_ai_provider");
           if (gKey) clientConfig.groq_api_key = gKey;
           if (gModel) clientConfig.groq_model = gModel;
           if (oKey) clientConfig.ollama_api_key = oKey;

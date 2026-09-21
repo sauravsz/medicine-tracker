@@ -1,4 +1,4 @@
-# MedTrack — Multi-Channel Medicine Stock & Reorder Forecasting System
+# TrackMed — Multi-Channel Medicine Stock & Reorder Forecasting System
 
 > A personal, single-user web app and PWA to track prescription medicine inventory across multiple purchase channels with asymmetric delivery lead times, forecasting exact reorder deadlines to eliminate stockout risk.
 
@@ -64,7 +64,7 @@ $$\text{Packs Required} = \left\lceil \frac{\text{Monthly Units Needed}}{\text{U
   - Liquid Glass dark theme with Fraunces display serif and clean body sans typography.
   - Hardware-accelerated 120 FPS rendering.
 - **Dual-Mode Storage Architecture:**
-  - **Local Development:** Zero-config embedded SQLite via `@libsql/client` (`data/medtracker.db`).
+  - **Local Development:** Zero-config embedded SQLite via `@libsql/client` (`data/trackmed.db`).
   - **Production:** Supabase PostgreSQL with SSL connection pooling.
 - **Automated Daily Reorder Digest:**
   - Serverless cron route (`/api/cron/daily-digest`) evaluating inventory daily at 08:00 AM.
@@ -85,9 +85,8 @@ $$\text{Packs Required} = \left\lceil \frac{\text{Monthly Units Needed}}{\text{U
 ## 6. Getting Started (Local Development)
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/sauravsz/medicine-tracker.git
-cd medicine-tracker
+git clone https://github.com/sauravsz/trackmed.git
+cd trackmed
 
 # 2. Install dependencies
 pnpm install

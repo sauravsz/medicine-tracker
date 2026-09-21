@@ -46,7 +46,7 @@ export function Navbar() {
           </div>
           <div>
             <span className="font-bold text-[20px] tracking-tight text-white font-sans">
-              medtrack
+              trackmed
             </span>
           </div>
         </Link>

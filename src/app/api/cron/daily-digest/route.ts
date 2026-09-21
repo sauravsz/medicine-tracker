@@ -71,9 +71,9 @@ export async function GET(request: Request) {
     const orderSoonItems = alertItems.filter((a) => a.urgency === "ORDER_SOON");
 
     const emailHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #1e293b;">
-        <div style="background: #0f172a; padding: 20px; border-radius: 12px; color: white; margin-bottom: 20px;">
-          <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: #2dd4bf;">MedTrack — Daily Reorder Digest</h1>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #090c14; color: #f8fafc; border-radius: 12px; padding: 24px; border: 1px solid #1e293b;">
+        <div style="border-bottom: 1px solid #1e293b; padding-bottom: 16px; margin-bottom: 20px;">
+          <h1 style="margin: 0; font-size: 20px; font-weight: 700; color: #38bdf8;">TrackMed Daily Digest</h1>
           <p style="margin: 4px 0 0 0; font-size: 13px; color: #94a3b8;">${todayFormatted} • Multi-Channel Lead Time Report</p>
         </div>
 
@@ -120,9 +120,9 @@ export async function GET(request: Request) {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: "MedTrack <onboarding@resend.dev>",
+      from: "TrackMed <onboarding@resend.dev>",
       to: emailTo,
-      subject: `[MedTrack Alert] ${alertItems.length} Medicine(s) Require Reordering — ${todayFormatted}`,
+      subject: `[TrackMed Alert] ${alertItems.length} Medicine(s) Require Reordering — ${todayFormatted}`,
       html: emailHtml,
     });
 

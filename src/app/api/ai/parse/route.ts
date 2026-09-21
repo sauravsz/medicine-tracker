@@ -89,7 +89,7 @@ function buildSystemPrompt(
     )
     .join("\n");
 
-  return `You are a medical inventory assistant for MedTrack. Your job is to extract structured intent from the user's natural language command with 100% mathematical accuracy.
+  return `You are a medical inventory assistant for TrackMed. Your job is to extract structured intent from the user's natural language command with 100% mathematical accuracy.
 
 CURRENT USER PRESCRIPTION INVENTORY:
 ${inventoryContext}

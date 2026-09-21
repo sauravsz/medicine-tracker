@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "MedTrack — Medicine Reorder System",
-    short_name: "MedTrack",
+    name: "TrackMed — Medicine Reorder System",
+    short_name: "TrackMed",
     description: "Personal multi-channel medicine stock and lead-time reorder tracking system",
     start_url: "/",
     display: "standalone",

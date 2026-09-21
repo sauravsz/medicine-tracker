@@ -19,14 +19,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "MedTrack — Multi-Channel Medicine System",
+  title: "TrackMed — Multi-Channel Medicine System",
   description:
     "Personal single-user medicine stock tracker with multi-channel lead times (Apollo 24|7, Mr. Med, Offline chemist) and 30-day procurement planning.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "MedTrack",
+    title: "TrackMed",
   },
   icons: {
     icon: "/icons/icon.svg",

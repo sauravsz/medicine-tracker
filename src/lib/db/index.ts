@@ -70,7 +70,9 @@ function getClients() {
       if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
       }
-      const dbPath = path.join(dataDir, "medtracker.db");
+      const dbPath = fs.existsSync(path.join(dataDir, "medtracker.db"))
+        ? path.join(dataDir, "medtracker.db")
+        : path.join(dataDir, "trackmed.db");
       sqliteClient = createClient({
         url: `file:${dbPath}`,
       });
