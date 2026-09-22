@@ -71,7 +71,7 @@ export function MedicineCard({ item, onRestockClick, onAdjustClick }: MedicineCa
               <span className="truncate">{medicine.name}</span>
             </Link>
             <p className="text-[12px] text-[#94a3b8] mt-0.5 font-medium">
-              {item.daily_consumption} {medicine.unit_label}/day • {medicine.units_per_pack > 1 ? `${medicine.units_per_pack}/pk` : "Loose"}
+              {item.frequency_label || `${item.daily_consumption} ${medicine.unit_label}/day`} • {medicine.units_per_pack > 1 ? `${medicine.units_per_pack}/pk` : "Loose"}
             </p>
           </div>
 

@@ -231,10 +231,9 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
           </div>
 
           <div className="p-4 rounded-2xl bg-black/30 border border-white/5 backdrop-blur-md">
-            <span className="text-[12px] font-medium text-[#94a3b8] block">Daily Consumption</span>
+            <span className="text-[12px] font-medium text-[#94a3b8] block">Dosage Frequency</span>
             <div className="flex items-baseline gap-1 mt-1">
-              <span className="text-3xl font-black font-mono text-white">{state.daily_consumption}</span>
-              <span className="text-xs text-[#94a3b8]">{medicine.unit_label}/d</span>
+              <span className="text-xl font-bold font-mono text-white">{state.frequency_label || `${state.daily_consumption} ${medicine.unit_label}/d`}</span>
             </div>
           </div>
 

@@ -112,6 +112,152 @@ export function getCalendarDaysElapsed(laterDate: Date | string, earlierDate: Da
 }
 
 /**
+ * Detects if a schedule instructions string specifies a specific weekday (e.g. Saturday)
+ */
+export function getTargetWeekday(instructions?: string | null): number | null {
+  if (!instructions) return null;
+  const lower = instructions.toLowerCase();
+  if (lower.includes("sunday") || lower.includes("sun")) return 0;
+  if (lower.includes("monday") || lower.includes("mon")) return 1;
+  if (lower.includes("tuesday") || lower.includes("tue")) return 2;
+  if (lower.includes("wednesday") || lower.includes("wed")) return 3;
+  if (lower.includes("thursday") || lower.includes("thu")) return 4;
+  if (lower.includes("friday") || lower.includes("fri")) return 5;
+  if (lower.includes("saturday") || lower.includes("sat")) return 6;
+  return null;
+}
+
+/**
+ * Calculates the quantity required on a specific date based on schedules and baseline anchor.
+ */
+export function getDoseQuantityForDate(
+  schedules: DoseSchedule[],
+  targetDate: Date,
+  baselineDate: Date
+): number {
+  if (!schedules || schedules.length === 0) return 0;
+  let dailyTotal = 0;
+  for (const s of schedules) {
+    const qty = Number(s.quantity) || 0;
+    const interval = Math.max(1, Number(s.interval_days) || 1);
+    if (interval === 1) {
+      dailyTotal += qty;
+    } else {
+      const targetWeekday = getTargetWeekday(s.instructions);
+      if (targetWeekday !== null) {
+        if (targetDate.getDay() === targetWeekday) {
+          dailyTotal += qty;
+        }
+      } else {
+        const daysFromBase = getCalendarDaysElapsed(targetDate, baselineDate);
+        if (daysFromBase > 0 && daysFromBase % interval === 0) {
+          dailyTotal += qty;
+        }
+      }
+    }
+  }
+  return dailyTotal;
+}
+
+/**
+ * Calculates actual consumed units between baseline and reference date for both daily and weekly/interval schedules.
+ */
+export function calculateConsumptionSinceBaseline(
+  schedules: DoseSchedule[],
+  baselineDate: Date,
+  referenceDate: Date
+): number {
+  const daysElapsed = getCalendarDaysElapsed(referenceDate, baselineDate);
+  if (daysElapsed <= 0) return 0;
+
+  const allDaily = schedules.every((s) => (Number(s.interval_days) || 1) === 1);
+  if (allDaily) {
+    const dailyRate = schedules.reduce((total, s) => total + (Number(s.quantity) || 0), 0);
+    return dailyRate * daysElapsed;
+  }
+
+  let totalConsumed = 0;
+  for (let i = 1; i <= daysElapsed; i++) {
+    const currDate = addDays(baselineDate, i);
+    totalConsumed += getDoseQuantityForDate(schedules, currDate, baselineDate);
+  }
+  return totalConsumed;
+}
+
+/**
+ * Projects forward how many days the remaining stock will last before depleting to 0.
+ */
+export function calculateDaysRemaining(
+  schedules: DoseSchedule[],
+  stock: number,
+  referenceDate: Date,
+  baselineDate: Date
+): number {
+  if (stock <= 0) return 0;
+  if (!schedules || schedules.length === 0) return 999;
+
+  const allDaily = schedules.every((s) => (Number(s.interval_days) || 1) === 1);
+  if (allDaily) {
+    const dailyRate = schedules.reduce((total, s) => total + (Number(s.quantity) || 0), 0);
+    return dailyRate > 0 ? Math.floor(stock / dailyRate) : 999;
+  }
+
+  let remStock = stock;
+  let dayOffset = 0;
+  while (remStock > 0 && dayOffset < 365) {
+    dayOffset++;
+    const nextDate = addDays(referenceDate, dayOffset);
+    const doseNeeded = getDoseQuantityForDate(schedules, nextDate, baselineDate);
+    if (doseNeeded > 0) {
+      if (remStock < doseNeeded) {
+        return dayOffset - 1;
+      }
+      remStock -= doseNeeded;
+      if (remStock === 0) {
+        return dayOffset;
+      }
+    }
+  }
+  return dayOffset >= 365 ? 999 : dayOffset;
+}
+
+/**
+ * Formats a clean human frequency string (e.g. "1 injection/week (Sat)" instead of "0.14 injections/day").
+ */
+export function formatScheduleSummary(schedules: DoseSchedule[], unitLabel: string = "units"): string {
+  if (!schedules || schedules.length === 0) return `0 ${unitLabel}/day`;
+
+  if (schedules.length === 1) {
+    const s = schedules[0];
+    const qty = Number(s.quantity) || 1;
+    const interval = Number(s.interval_days) || 1;
+    const singleUnit = qty === 1 && unitLabel.endsWith("s") ? unitLabel.slice(0, -1) : unitLabel;
+
+    if (interval === 1) {
+      return `${qty} ${singleUnit}/day`;
+    }
+    if (interval === 7) {
+      const weekday = getTargetWeekday(s.instructions);
+      const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const daySuffix = weekday !== null ? ` (${weekdayNames[weekday]})` : "";
+      return `${qty} ${singleUnit}/week${daySuffix}`;
+    }
+    return `${qty} ${singleUnit} every ${interval} days`;
+  }
+
+  const allDaily = schedules.every((s) => (Number(s.interval_days) || 1) === 1);
+  if (allDaily) {
+    const totalDaily = schedules.reduce((acc, s) => acc + (Number(s.quantity) || 0), 0);
+    const singleUnit = totalDaily === 1 && unitLabel.endsWith("s") ? unitLabel.slice(0, -1) : unitLabel;
+    return `${totalDaily} ${singleUnit}/day`;
+  }
+
+  const dailyEquivalent = calculateDailyConsumption(schedules);
+  const rounded = Math.round(dailyEquivalent * 100) / 100;
+  return `${rounded} ${unitLabel}/day`;
+}
+
+/**
  * Calculates total daily consumption for a medicine from its dose schedules.
  */
 export function calculateDailyConsumption(schedules: DoseSchedule[]): number {
@@ -139,14 +285,18 @@ export function computeMedicineState(
   const baselineDate = safeParseDate(medicine.baseline_date || todayStr);
 
   const dailyConsumption = calculateDailyConsumption(schedules);
+  const frequencyLabel = formatScheduleSummary(schedules, medicine.unit_label);
   const safetyBuffer =
     typeof medicine.safety_buffer_days === "number" && medicine.safety_buffer_days !== null
       ? medicine.safety_buffer_days
       : settings.default_safety_buffer_days ?? 2;
 
-  // 1. Timezone-neutral calendar days elapsed since baseline anchor
-  const daysElapsed = getCalendarDaysElapsed(referenceDate, baselineDate);
-  const consumedSinceBaseline = dailyConsumption * daysElapsed;
+  // 1. Calendar-accurate units consumed since baseline anchor
+  const consumedSinceBaseline = calculateConsumptionSinceBaseline(
+    schedules,
+    baselineDate,
+    referenceDate
+  );
 
   // 2. Sum received restocks recorded on or after baseline date
   const receivedRestocksSinceBaseline = restocks
@@ -184,14 +334,22 @@ export function computeMedicineState(
     latestEta = etas[etas.length - 1] || null;
   }
 
-  // 6. Days remaining & stockout dates
-  const daysRemaining =
-    dailyConsumption > 0 ? Math.floor(onHandStock / dailyConsumption) : 999;
+  // 6. Days remaining & stockout dates (calendar-accurate forward simulation)
+  const daysRemaining = calculateDaysRemaining(
+    schedules,
+    onHandStock,
+    referenceDate,
+    baselineDate
+  );
   const stockOutDate = safeFormatDate(addDays(referenceDate, daysRemaining));
 
   const effectiveStock = onHandStock + inTransitUnits;
-  const effectiveDaysRemaining =
-    dailyConsumption > 0 ? Math.floor(effectiveStock / dailyConsumption) : 999;
+  const effectiveDaysRemaining = calculateDaysRemaining(
+    schedules,
+    effectiveStock,
+    referenceDate,
+    baselineDate
+  );
   const effectiveStockOutDate = safeFormatDate(addDays(referenceDate, effectiveDaysRemaining));
 
   // In-transit shielding: order is active and arriving
@@ -211,7 +369,6 @@ export function computeMedicineState(
     latest_eta: latestEta,
     covers_stockout: inTransitCovers,
   };
-
   // 7. Channel Deadlines computation
   const channels: ChannelType[] = ["apollo", "mr_med", "offline"];
   const deadlines: ChannelDeadline[] = channels.map((chan) => {
@@ -402,6 +559,7 @@ export function computeMedicineState(
     restocks,
     adjustments,
     daily_consumption: Math.round(dailyConsumption * 100) / 100,
+    frequency_label: frequencyLabel,
     on_hand_stock: onHandStock,
     days_remaining: daysRemaining,
     stock_out_date: stockOutDate,
@@ -432,8 +590,9 @@ export function generateStockTrajectory(
   projectedStock: number;
   safetyThreshold: number;
 }> {
-  const { on_hand_stock, daily_consumption, deadlines } = state;
+  const { on_hand_stock, daily_consumption, deadlines, schedules, medicine } = state;
   const today = new Date();
+  const baselineDate = safeParseDate(medicine.baseline_date);
   const points = [];
 
   const maxLead = Math.max(
@@ -442,14 +601,18 @@ export function generateStockTrajectory(
   );
   const safetyStockThreshold = Math.round(maxLead * daily_consumption);
 
+  let simStock = on_hand_stock;
   for (let i = 0; i <= daysCount; i++) {
     const d = addDays(today, i);
     const dateStr = safeFormatDate(d, "MMM dd");
-    const stockAtDay = Math.max(0, Math.round((on_hand_stock - daily_consumption * i) * 10) / 10);
+    if (i > 0) {
+      const doseToday = getDoseQuantityForDate(schedules, d, baselineDate);
+      simStock = Math.max(0, simStock - doseToday);
+    }
     points.push({
       dayIndex: i,
       date: dateStr,
-      projectedStock: stockAtDay,
+      projectedStock: Math.round(simStock * 10) / 10,
       safetyThreshold: safetyStockThreshold,
     });
   }

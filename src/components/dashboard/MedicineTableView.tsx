@@ -63,9 +63,9 @@ export function MedicineTableView({
                     </span>
                   </td>
 
-                  {/* Daily Rate */}
-                  <td className="py-4 px-3 text-center font-mono font-bold text-white text-[13px]">
-                    {item.daily_consumption} <span className="text-[10px] text-[#94a3b8] font-normal">/d</span>
+                  {/* Dosage Rate / Frequency */}
+                  <td className="py-4 px-3 text-center font-mono font-semibold text-white text-[12px]">
+                    {item.frequency_label || `${item.daily_consumption}/d`}
                   </td>
 
                   {/* Stock On Hand */}

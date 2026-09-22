@@ -152,6 +152,7 @@ export interface CalculatedMedicineState {
   
   // Computed metrics
   daily_consumption: number;
+  frequency_label: string;
   on_hand_stock: number;
   days_remaining: number;
   stock_out_date: string;
