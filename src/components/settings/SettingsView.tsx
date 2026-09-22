@@ -120,7 +120,7 @@ export function SettingsView({ initialSettings, sqlSchema }: SettingsViewProps) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: "Bought 4 strips of Telma LN 40 from Apollo for 480",
+          prompt: "Bought 4 strips of Cardio-Guard 40 from Apollo for 480",
           ...clientConfig,
         }),
       });

@@ -33,9 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
-# local database
+# local database & private prescription data
 /data/*.db*
-
+/data/*.json
+/data/*.local.*
+*.local.*
+src/scripts/seed-local-prescription.ts
+src/scripts/*.local.*
 # vercel
 .vercel
 

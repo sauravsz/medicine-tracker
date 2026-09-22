@@ -98,15 +98,15 @@ TODAY'S DATE: ${todayStr}
 
 RULES:
 1. Intent types:
-   - "LOG_RESTOCK": When user bought/ordered/received medicines (e.g. "Bought 4 strips of Telma LN 40 from Apollo for 480").
-   - "AUDIT_COUNT": When user counted physical stock on hand (e.g. "Recounted Renolog, have 4 strips and 2 tabs left").
-   - "UPDATE_SCHEDULE": When doctor changed dosage frequency (e.g. "Change Trajenta to 1 tab morning, 1 night").
+   - "LOG_RESTOCK": When user bought/ordered/received medicines (e.g. "Bought 4 strips of Cardio-Guard 40 from Apollo for 480").
+   - "AUDIT_COUNT": When user counted physical stock on hand (e.g. "Recounted Cardio-Guard 40, have 4 strips and 2 tabs left").
+   - "UPDATE_SCHEDULE": When doctor changed dosage frequency (e.g. "Change Glyco-Balance 500 to 1 tab morning, 1 night").
    - "ADD_MEDICINE": When user wants to track a brand new medicine not in inventory.
    - "UNKNOWN": If input is completely unrelated.
 
 2. PACK ARITHMETIC RULES:
    - If user says "N strips" or "N packets", multiply N by the medicine's units_per_pack to get total_units.
-   - Example: 4 strips of Telma LN 40 (units_per_pack=15) = 60 total tablets.
+   - Example: 4 strips of Cardio-Guard 40 (units_per_pack=15) = 60 total tablets.
    - If user says "4 strips and 2 tablets", total = (4 * 15) + 2 = 62 tablets.
 
 3. VENDORS:

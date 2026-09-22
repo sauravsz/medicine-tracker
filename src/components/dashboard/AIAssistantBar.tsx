@@ -126,7 +126,7 @@ export function AIAssistantBar({ onParsedCommand }: AIAssistantBarProps) {
           </div>
           <input
             type="text"
-            placeholder="Type or speak anything (e.g. 'Bought 4 strips of Telma LN 40 from Apollo for 480')..."
+            placeholder="Type or speak anything (e.g. 'Bought 4 strips of Cardio-Guard 40 from Apollo for 480')..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="w-full bg-transparent text-[13.5px] text-white placeholder:text-[#64748b] focus:outline-none font-medium"

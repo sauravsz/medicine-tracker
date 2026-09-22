@@ -175,7 +175,7 @@ export function MedicineForm({ initialData }: MedicineFormProps) {
             </label>
             <input
               type="text"
-              placeholder="e.g. Thyronorm, Telma 40, Glycomet-GP 2"
+              placeholder="e.g. Cardio-Guard 40, Glyco-Balance 500, Vita-D3"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
