@@ -239,14 +239,9 @@ export function MonthlyPlanningView({ medicines }: MonthlyPlanningViewProps) {
                     <td className="py-4 px-4">
                       <Link
                         href={`/medicines/${item.medicine.id}`}
-                        className="font-bold text-[14px] text-white hover:text-[#ff385c] transition-colors flex items-center gap-1.5"
+                        className="font-bold text-[14px] text-white hover:text-[#ff385c] transition-colors inline-block"
                       >
                         <span>{item.medicine.name}</span>
-                        {item.medicine.strength && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono border border-white/15">
-                            {item.medicine.strength}
-                          </span>
-                        )}
                       </Link>
                       <span className="text-[11px] text-[#94a3b8] capitalize">
                         {item.medicine.form} • Current: {item.on_hand_stock} {item.medicine.unit_label}

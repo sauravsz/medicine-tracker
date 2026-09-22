@@ -61,7 +61,7 @@ export function MedicineCard({ item, onRestockClick, onAdjustClick }: MedicineCa
       className={`rounded-3xl liquid-glass-card p-5 flex flex-col justify-between group relative overflow-hidden ${theme.border}`}
     >
       <div>
-        {/* Header: Title + Strength + Status Chip */}
+        {/* Header: Title + Status Chip */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="min-w-0">
             <Link
@@ -69,11 +69,6 @@ export function MedicineCard({ item, onRestockClick, onAdjustClick }: MedicineCa
               className="font-bold text-[16px] text-white hover:text-[#ff385c] transition-colors flex items-center gap-2 group-hover:translate-x-0.5 transition-transform"
             >
               <span className="truncate">{medicine.name}</span>
-              {medicine.strength && (
-                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-white font-mono border border-white/15 font-semibold shrink-0">
-                  {medicine.strength}
-                </span>
-              )}
             </Link>
             <p className="text-[12px] text-[#94a3b8] mt-0.5 font-medium">
               {item.daily_consumption} {medicine.unit_label}/day • {medicine.units_per_pack > 1 ? `${medicine.units_per_pack}/pk` : "Loose"}

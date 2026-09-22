@@ -54,14 +54,9 @@ export function MedicineTableView({
                   <td className="py-4 px-5">
                     <Link
                       href={`/medicines/${medicine.id}`}
-                      className="font-bold text-[14px] text-white hover:text-[#ff385c] transition-colors flex items-center gap-2"
+                      className="font-bold text-[14px] text-white hover:text-[#ff385c] transition-colors inline-block"
                     >
                       <span>{medicine.name}</span>
-                      {medicine.strength && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-white/10 text-white font-mono border border-white/15">
-                          {medicine.strength}
-                        </span>
-                      )}
                     </Link>
                     <span className="text-[11px] text-[#94a3b8] capitalize">
                       {medicine.form} • {medicine.units_per_pack > 1 ? `${medicine.units_per_pack}/pk` : "Loose"}
