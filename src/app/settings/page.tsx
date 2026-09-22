@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS settings (
   groq_model TEXT DEFAULT 'llama-3.3-70b-versatile',
   ollama_api_key TEXT,
   ollama_base_url TEXT DEFAULT 'https://ollama.com',
-  ollama_model TEXT DEFAULT 'llama3.3'
+  ollama_model TEXT DEFAULT 'llama3.3',
+  telegram_bot_token TEXT,
+  telegram_chat_id TEXT,
+  telegram_enabled BOOLEAN NOT NULL DEFAULT true
 );
 INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 

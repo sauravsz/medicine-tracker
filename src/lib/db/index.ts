@@ -124,6 +124,24 @@ async function executeCommand(sqlText: string, params: (string | number | boolea
 export async function initDb() {
   if (initialized) return;
   initialized = true;
+  try {
+    const { isPg } = getClients();
+    if (isPg) {
+      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_bot_token TEXT;`);
+      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT;`);
+      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_enabled BOOLEAN DEFAULT true;`);
+    } else {
+      try {
+        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_bot_token TEXT;`);
+      } catch {}
+      try {
+        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_chat_id TEXT;`);
+      } catch {}
+      try {
+        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_enabled BOOLEAN DEFAULT 1;`);
+      } catch {}
+    }
+  } catch {}
 }
 
 // ----------------------------------------------------------------------------
@@ -131,6 +149,7 @@ export async function initDb() {
 // ----------------------------------------------------------------------------
 
 export async function getSettings(): Promise<AppSettings> {
+  await initDb();
   const rows = await queryRows("SELECT * FROM settings WHERE id = 1;");
   if (rows.length === 0) return DEFAULT_SETTINGS;
   const row = rows[0];
@@ -149,14 +168,18 @@ export async function getSettings(): Promise<AppSettings> {
     reminders_enabled: Boolean(row.reminders_enabled),
     ai_provider: (row.ai_provider as AppSettings["ai_provider"]) || "groq",
     groq_api_key: row.groq_api_key ? String(row.groq_api_key) : null,
-    groq_model: row.groq_model ? String(row.groq_model) : "llama-3.3-70b-versatile",
+    groq_model: row.groq_model ? String(row.groq_model) : "openai/gpt-oss-120b",
     ollama_api_key: row.ollama_api_key ? String(row.ollama_api_key) : null,
     ollama_base_url: row.ollama_base_url ? String(row.ollama_base_url) : "https://ollama.com",
-    ollama_model: row.ollama_model ? String(row.ollama_model) : "llama3.3",
+    ollama_model: row.ollama_model ? String(row.ollama_model) : "ollamacloud/gemma4:31b",
+    telegram_bot_token: row.telegram_bot_token ? String(row.telegram_bot_token) : null,
+    telegram_chat_id: row.telegram_chat_id ? String(row.telegram_chat_id) : null,
+    telegram_enabled: row.telegram_enabled !== undefined && row.telegram_enabled !== null ? Boolean(row.telegram_enabled) : true,
   };
 }
 
 export async function updateSettings(data: Partial<AppSettings>): Promise<AppSettings> {
+  await initDb();
   const current = await getSettings();
   const merged: AppSettings = { ...current, ...data };
 
@@ -173,7 +196,10 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
         app_passcode = ?,
         reminder_email = ?,
         reminder_time = ?,
-        reminders_enabled = ?
+        reminders_enabled = ?,
+        telegram_bot_token = ?,
+        telegram_chat_id = ?,
+        telegram_enabled = ?
       WHERE id = 1;
     `,
     [
@@ -188,6 +214,9 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
       merged.reminder_email || null,
       merged.reminder_time,
       merged.reminders_enabled ? 1 : 0,
+      merged.telegram_bot_token || null,
+      merged.telegram_chat_id || null,
+      merged.telegram_enabled ? 1 : 0,
     ]
   );
 

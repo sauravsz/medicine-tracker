@@ -18,13 +18,19 @@ CREATE TABLE IF NOT EXISTS settings (
   reminders_enabled BOOLEAN NOT NULL DEFAULT true,
   ai_provider TEXT NOT NULL DEFAULT 'groq',
   groq_api_key TEXT,
-  openai_api_key TEXT
+  openai_api_key TEXT,
+  telegram_bot_token TEXT,
+  telegram_chat_id TEXT,
+  telegram_enabled BOOLEAN NOT NULL DEFAULT true
 );
 
 -- Migration helper for existing settings table
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS ai_provider TEXT DEFAULT 'groq';
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS groq_api_key TEXT;
 ALTER TABLE settings ADD COLUMN IF NOT EXISTS openai_api_key TEXT;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_bot_token TEXT;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT;
+ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_enabled BOOLEAN DEFAULT true;
 
 -- Insert default settings row if missing
 INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;

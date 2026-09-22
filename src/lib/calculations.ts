@@ -5,7 +5,7 @@ import {
   isBefore,
   isSameDay,
 } from "date-fns";
-import {
+import type {
   Medicine,
   DoseSchedule,
   ChannelConfig,
@@ -39,6 +39,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   ollama_api_key: null,
   ollama_base_url: "https://ollama.com",
   ollama_model: "ollamacloud/gemma4:31b",
+  telegram_bot_token: null,
+  telegram_chat_id: null,
+  telegram_enabled: true,
 };
 
 export const CHANNEL_METADATA: Record<

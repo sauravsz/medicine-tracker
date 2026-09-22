@@ -107,6 +107,9 @@ export interface AppSettings {
   ollama_api_key?: string | null;
   ollama_base_url?: string | null; // e.g. "https://ollama.com"
   ollama_model?: string | null; // e.g. "llama3.3"
+  telegram_bot_token?: string | null;
+  telegram_chat_id?: string | null;
+  telegram_enabled?: boolean;
 }
 
 export interface ChannelDeadline {

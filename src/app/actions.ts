@@ -16,7 +16,7 @@ import {
   seedSampleData,
 } from "@/lib/db";
 import { ChannelType, MedicineForm, StockAdjustment } from "@/lib/types";
-
+import { sendTelegramTestPing } from "@/lib/telegram";
 export async function getDashboardData() {
   let { settings, states } = await getAllCalculatedStates();
 
@@ -200,6 +200,9 @@ export async function updateSettingsAction(payload: {
   ollama_api_key?: string | null;
   ollama_base_url?: string | null;
   ollama_model?: string | null;
+  telegram_bot_token?: string | null;
+  telegram_chat_id?: string | null;
+  telegram_enabled?: boolean;
 }) {
   const updated = await updateSettings(payload);
   revalidatePath("/");
@@ -208,6 +211,9 @@ export async function updateSettingsAction(payload: {
   return { success: true, settings: updated };
 }
 
+export async function sendTestTelegramAction(botToken: string, chatId: string) {
+  return await sendTelegramTestPing(botToken, chatId);
+}
 export async function seedSampleDataAction() {
   await seedSampleData();
   revalidatePath("/");
