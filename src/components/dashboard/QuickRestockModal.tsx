@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { X, Truck, Check } from "lucide-react";
 import { CalculatedMedicineState, ChannelType } from "@/lib/types";
 import { logRestockAction } from "@/app/actions";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
+import { safeParseDate } from "@/lib/calculations";
 
 interface QuickRestockModalProps {
   item: CalculatedMedicineState;
@@ -34,6 +35,9 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
     if (calculatedTotalUnits <= 0) return;
 
     startTransition(async () => {
+      const channelDeadline = item.deadlines.find((d) => d.channel === channel);
+      const leadDays = channelDeadline ? channelDeadline.lead_time_max : (channel === "apollo" ? 3 : channel === "mr_med" ? 5 : 0);
+      const expectedEta = format(addDays(safeParseDate(orderedDate), leadDays), "yyyy-MM-dd");
       await logRestockAction({
         medicine_id: item.medicine.id,
         channel,
@@ -41,7 +45,7 @@ export function QuickRestockModal({ item, onClose, onSuccess }: QuickRestockModa
         units_per_pack: unitsPerPack,
         quantity_added: calculatedTotalUnits,
         ordered_date: orderedDate,
-        expected_arrival_date: !isReceived ? format(new Date(), "yyyy-MM-dd") : null,
+        expected_arrival_date: !isReceived ? expectedEta : null,
         received_date: isReceived ? orderedDate : null,
         cost: cost ? parseFloat(cost) : null,
         notes: notes || null,

@@ -84,12 +84,14 @@ export function MedicineDetailView({ data }: MedicineDetailViewProps) {
     });
   };
 
-  const urgencyConfig = {
+  const urgencyMap: Record<string, { badgeBg: string; dot: string }> = {
     OK: { badgeBg: "bg-emerald-500/15 text-[#34d399] border-emerald-500/30", dot: "bg-[#34d399]" },
     ORDER_SOON: { badgeBg: "bg-amber-500/15 text-[#fde047] border-amber-500/30", dot: "bg-[#facc15]" },
     ORDER_NOW: { badgeBg: "bg-orange-500/15 text-[#fdba74] border-orange-500/30", dot: "bg-[#fb923c]" },
     CRITICAL: { badgeBg: "bg-rose-500/15 text-[#fda4af] border-rose-500/30", dot: "bg-[#f43f5e] animate-pulse" },
-  }[state.urgency];
+    IN_TRANSIT: { badgeBg: "bg-blue-500/15 text-[#60a5fa] border-blue-500/30", dot: "bg-[#3b82f6]" },
+  };
+  const urgencyConfig = urgencyMap[state.urgency] || urgencyMap.OK;
 
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-16">

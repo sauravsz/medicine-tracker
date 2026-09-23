@@ -9,7 +9,7 @@ import {
   updateMedicineAction,
   createMedicineAction,
 } from "@/app/actions";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 interface AIConfirmationModalProps {
   payload: AICommandPayload;
@@ -68,8 +68,10 @@ export function AIConfirmationModal({
 
   const handleApply = () => {
     startTransition(async () => {
-      const todayStr = format(new Date(), "yyyy-MM-dd");
-
+      const now = new Date();
+      const todayStr = format(now, "yyyy-MM-dd");
+      const leadDays = channel === "apollo" ? 3 : channel === "mr_med" ? 5 : 0;
+      const defaultEta = format(addDays(now, leadDays), "yyyy-MM-dd");
       if (payload.intent === "LOG_RESTOCK") {
         await logRestockAction({
           medicine_id: selectedMedId,
@@ -78,7 +80,7 @@ export function AIConfirmationModal({
           units_per_pack: unitsPerPack,
           quantity_added: Number(totalUnits) || 0,
           ordered_date: todayStr,
-          expected_arrival_date: !isDelivered ? "2026-09-24" : null,
+          expected_arrival_date: !isDelivered ? defaultEta : null,
           received_date: isDelivered ? todayStr : null,
           cost: cost ? parseFloat(cost) : null,
           notes: payload.restock?.notes || "Logged via AI natural language input",

@@ -110,6 +110,7 @@ export interface AppSettings {
   telegram_bot_token?: string | null;
   telegram_chat_id?: string | null;
   telegram_enabled?: boolean;
+  has_seeded?: boolean;
 }
 
 export interface ChannelDeadline {
@@ -167,7 +168,7 @@ export interface CalculatedMedicineState {
   deadlines: ChannelDeadline[];
   urgency: UrgencyStatus;
   urgency_label: string;
-  urgency_color: "emerald" | "amber" | "orange" | "rose";
+  urgency_color: "emerald" | "amber" | "orange" | "rose" | "blue";
   recommended_action: string;
   recommended_channel: ChannelType | "none";
   recommended_order_by: string;

@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { CalculatedMedicineState, ChannelType } from "@/lib/types";
 import { logRestockAction } from "@/app/actions";
-import { format } from "date-fns";
+import { format, addDays } from "date-fns";
 
 interface ProcurementCartModalProps {
   medicines: CalculatedMedicineState[];
@@ -109,8 +109,10 @@ export function ProcurementCartModal({
     if (selectedItems.length === 0) return;
 
     startTransition(async () => {
-      const orderDateIso = format(new Date(), "yyyy-MM-dd");
-
+      const now = new Date();
+      const orderDateIso = format(now, "yyyy-MM-dd");
+      const leadDays = selectedVendor === "apollo" ? 3 : selectedVendor === "mr_med" ? 5 : 0;
+      const expectedArrivalIso = format(addDays(now, leadDays), "yyyy-MM-dd");
       for (const item of selectedItems) {
         const plan = item.monthly_planning;
         await logRestockAction({
@@ -120,7 +122,7 @@ export function ProcurementCartModal({
           units_per_pack: plan.units_per_pack,
           quantity_added: plan.total_units_purchased,
           ordered_date: orderDateIso,
-          expected_arrival_date: selectedVendor === "offline" ? orderDateIso : "2026-09-24",
+          expected_arrival_date: expectedArrivalIso,
           notes: `Batch ordered via ${vendorName} Cart Generator`,
         });
       }

@@ -20,7 +20,7 @@ import { sendTelegramTestPing } from "@/lib/telegram";
 export async function getDashboardData() {
   let { settings, states } = await getAllCalculatedStates();
 
-  if (states.length === 0) {
+  if (states.length === 0 && !settings.has_seeded) {
     await seedSampleData();
     const res = await getAllCalculatedStates();
     settings = res.settings;

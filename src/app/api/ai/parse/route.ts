@@ -308,7 +308,7 @@ function parseWithDeterministicEngine(
 
     if (packCount !== null) {
       totalUnits = packCount * unitsPerPack;
-      if (packMatch && looseMatch && !packMatch[0].includes(looseMatch[1])) {
+      if (packMatch && looseMatch && packMatch.index !== looseMatch.index) {
         totalUnits += parseInt(looseMatch[1]);
       }
     } else if (looseMatch) {
@@ -347,7 +347,7 @@ function parseWithDeterministicEngine(
     let exactUnits = 0;
     if (packMatch) {
       exactUnits = parseInt(packMatch[1]) * unitsPerPack;
-      if (packMatch && looseMatch && !packMatch[0].includes(looseMatch[1])) {
+      if (packMatch && looseMatch && packMatch.index !== looseMatch.index) {
         exactUnits += parseInt(looseMatch[1]);
       }
     } else if (looseMatch) {
@@ -374,15 +374,16 @@ function parseWithDeterministicEngine(
 
   // Case C: UPDATE SCHEDULE
   if (isSchedule && matchedMed) {
-    const hasMorning = /morning|bf|breakfast/i.test(lower);
-    const hasNoon = /afternoon|lunch|noon/i.test(lower);
-    const hasNight = /night|dinner|evening/i.test(lower);
-
+    const morningMatch = lower.match(/(\d+)\s*(?:tablet|tablets|capsule|capsules|pill|pills|unit|units)?\s*(?:in the\s*)?(?:morning|breakfast|bf)/i) || lower.match(/(?:morning|breakfast|bf)\s*[:=-]?\s*(\d+)/i);
+    const noonMatch = lower.match(/(\d+)\s*(?:tablet|tablets|capsule|capsules|pill|pills|unit|units)?\s*(?:in the\s*)?(?:afternoon|lunch|noon)/i) || lower.match(/(?:afternoon|lunch|noon)\s*[:=-]?\s*(\d+)/i);
+    const nightMatch = lower.match(/(\d+)\s*(?:tablet|tablets|capsule|capsules|pill|pills|unit|units)?\s*(?:in the\s*)?(?:night|dinner|evening)/i) || lower.match(/(?:night|dinner|evening)\s*[:=-]?\s*(\d+)/i);
+    const hasMorning = Boolean(morningMatch || lower.includes("morning") || lower.includes("breakfast") || lower.includes("bf") || lower.includes("am"));
+    const hasNoon = Boolean(noonMatch || lower.includes("afternoon") || lower.includes("lunch") || lower.includes("noon") || lower.includes("pm"));
+    const hasNight = Boolean(nightMatch || lower.includes("night") || lower.includes("dinner") || lower.includes("evening"));
     const schedules = [];
-    if (hasMorning) schedules.push({ time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Morning" });
-    if (hasNoon) schedules.push({ time_of_day: "afternoon", quantity: 1, interval_days: 1, instructions: "Afternoon" });
-    if (hasNight) schedules.push({ time_of_day: "night", quantity: 1, interval_days: 1, instructions: "Night" });
-
+    if (hasMorning) schedules.push({ time_of_day: "morning", quantity: morningMatch ? parseInt(morningMatch[1]) : 1, interval_days: 1, instructions: "Morning" });
+    if (hasNoon) schedules.push({ time_of_day: "afternoon", quantity: noonMatch ? parseInt(noonMatch[1]) : 1, interval_days: 1, instructions: "Afternoon" });
+    if (hasNight) schedules.push({ time_of_day: "night", quantity: nightMatch ? parseInt(nightMatch[1]) : 1, interval_days: 1, instructions: "Night" });
     if (schedules.length === 0) {
       schedules.push({ time_of_day: "morning", quantity: 1, interval_days: 1, instructions: "Daily dose" });
     }

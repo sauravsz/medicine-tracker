@@ -56,8 +56,8 @@ export function DashboardView({ initialData }: DashboardViewProps) {
       })
       .sort((a, b) => {
         if (sortBy === "urgency") {
-          const urgencyWeight = { CRITICAL: 0, ORDER_NOW: 1, ORDER_SOON: 2, OK: 3 };
-          const diff = urgencyWeight[a.urgency] - urgencyWeight[b.urgency];
+          const urgencyWeight: Record<string, number> = { CRITICAL: 0, ORDER_NOW: 1, ORDER_SOON: 2, OK: 3, IN_TRANSIT: 4 };
+          const diff = (urgencyWeight[a.urgency] ?? 5) - (urgencyWeight[b.urgency] ?? 5);
           if (diff !== 0) return diff;
           return a.days_remaining - b.days_remaining;
         }

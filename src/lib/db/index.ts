@@ -25,18 +25,32 @@ let isPostgres = false;
 let initialized = false;
 
 function toIsoDateString(val: unknown): string {
-  if (!val) return format(new Date(), "yyyy-MM-dd");
-  if (val instanceof Date) {
-    if (isNaN(val.getTime())) return format(new Date(), "yyyy-MM-dd");
-    return format(val, "yyyy-MM-dd");
+  if (!val) {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   }
-  const s = String(val).trim();
-  if (s.includes("T")) return s.split("T")[0];
-  try {
+  if (typeof val === "string") {
+    const s = val.trim();
+    if (s.includes("T")) return s.split("T")[0];
+    if (s.includes(" ")) return s.split(" ")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
     const d = new Date(s);
-    if (!isNaN(d.getTime())) return format(d, "yyyy-MM-dd");
-  } catch {}
-  return s;
+    if (!isNaN(d.getTime())) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+    return s;
+  }
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+    if (val.getUTCHours() === 0 && val.getUTCMinutes() === 0 && val.getUTCSeconds() === 0 && val.getUTCMilliseconds() === 0) {
+      return val.toISOString().split("T")[0];
+    }
+    return `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, "0")}-${String(val.getDate()).padStart(2, "0")}`;
+  }
+  return String(val);
 }
 
 function getClients() {
@@ -53,6 +67,14 @@ function getClients() {
         ssl: "require",
         max: 10,
         idle_timeout: 20,
+        types: {
+          date: {
+            to: 1082,
+            from: [1082],
+            serialize: (x: unknown) => String(x),
+            parse: (x: unknown) => String(x),
+          },
+        },
       });
     }
     return { isPg: true, pg: pgClient, sqlite: null };
@@ -88,14 +110,16 @@ async function queryRows(sqlText: string, params: (string | number | boolean | n
   if (isPg && pg) {
     let pIdx = 1;
     const pgSql = sqlText.replace(/\?/g, () => `$${pIdx++}`);
-    const rows = await pg.unsafe(pgSql, params as (string | number | null)[]);
+    const pgParams = params.map((p) => (typeof p === "boolean" ? Boolean(p) : p));
+    const rows = await pg.unsafe(pgSql, pgParams as (string | number | boolean | null)[]);
     return rows as unknown as Record<string, unknown>[];
   }
 
   if (sqlite) {
+    const sqliteParams = params.map((p) => (typeof p === "boolean" ? (p ? 1 : 0) : p));
     const res = await sqlite.execute({
       sql: sqlText,
-      args: params as (string | number | null)[],
+      args: sqliteParams as (string | number | null)[],
     });
     return res.rows as unknown as Record<string, unknown>[];
   }
@@ -109,14 +133,16 @@ async function executeCommand(sqlText: string, params: (string | number | boolea
   if (isPg && pg) {
     let pIdx = 1;
     const pgSql = sqlText.replace(/\?/g, () => `$${pIdx++}`);
-    await pg.unsafe(pgSql, params as (string | number | null)[]);
+    const pgParams = params.map((p) => (typeof p === "boolean" ? Boolean(p) : p));
+    await pg.unsafe(pgSql, pgParams as (string | number | boolean | null)[]);
     return;
   }
 
   if (sqlite) {
+    const sqliteParams = params.map((p) => (typeof p === "boolean" ? (p ? 1 : 0) : p));
     await sqlite.execute({
       sql: sqlText,
-      args: params as (string | number | null)[],
+      args: sqliteParams as (string | number | null)[],
     });
   }
 }
@@ -125,23 +151,201 @@ export async function initDb() {
   if (initialized) return;
   initialized = true;
   try {
-    const { isPg } = getClients();
-    if (isPg) {
-      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_bot_token TEXT;`);
-      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_chat_id TEXT;`);
-      await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS telegram_enabled BOOLEAN DEFAULT true;`);
-    } else {
+    const { isPg, pg, sqlite } = getClients();
+    if (isPg && pg) {
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS settings (
+          id INTEGER PRIMARY KEY,
+          default_apollo_lead_min INTEGER NOT NULL DEFAULT 7,
+          default_apollo_lead_max INTEGER NOT NULL DEFAULT 10,
+          default_mr_med_lead_min INTEGER NOT NULL DEFAULT 3,
+          default_mr_med_lead_max INTEGER NOT NULL DEFAULT 5,
+          default_offline_lead_min INTEGER NOT NULL DEFAULT 0,
+          default_offline_lead_max INTEGER NOT NULL DEFAULT 1,
+          default_safety_buffer_days INTEGER NOT NULL DEFAULT 5,
+          app_passcode TEXT,
+          reminder_email TEXT,
+          reminder_time TEXT NOT NULL DEFAULT '08:00',
+          reminders_enabled BOOLEAN NOT NULL DEFAULT true,
+          ai_provider TEXT NOT NULL DEFAULT 'groq',
+          groq_api_key TEXT,
+          groq_model TEXT NOT NULL DEFAULT 'openai/gpt-oss-120b',
+          ollama_api_key TEXT,
+          ollama_base_url TEXT NOT NULL DEFAULT 'https://ollama.com/v1',
+          ollama_model TEXT NOT NULL DEFAULT 'ollamacloud/gemma4:31b',
+          openai_api_key TEXT,
+          telegram_bot_token TEXT,
+          telegram_chat_id TEXT,
+          telegram_enabled BOOLEAN DEFAULT true,
+          has_seeded BOOLEAN DEFAULT false
+        );
+      `);
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS medicines (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          strength TEXT,
+          form TEXT NOT NULL DEFAULT 'tablet',
+          unit_label TEXT NOT NULL DEFAULT 'tablets',
+          units_per_pack INTEGER NOT NULL DEFAULT 1,
+          baseline_stock NUMERIC(10, 2) NOT NULL DEFAULT 0,
+          baseline_date DATE NOT NULL,
+          safety_buffer_days INTEGER,
+          notes TEXT,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS dose_schedules (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          time_of_day TEXT NOT NULL,
+          quantity NUMERIC(6, 2) NOT NULL DEFAULT 1,
+          interval_days INTEGER NOT NULL DEFAULT 1,
+          instructions TEXT
+        );
+      `);
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS channel_configs (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          channel TEXT NOT NULL,
+          lead_time_min_days INTEGER NOT NULL,
+          lead_time_max_days INTEGER NOT NULL,
+          available BOOLEAN NOT NULL DEFAULT true
+        );
+      `);
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS restock_events (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          channel TEXT NOT NULL,
+          pack_count INTEGER,
+          units_per_pack INTEGER,
+          quantity_added NUMERIC(10, 2) NOT NULL,
+          ordered_date DATE NOT NULL,
+          expected_arrival_date DATE,
+          received_date DATE,
+          cost NUMERIC(10, 2),
+          notes TEXT,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      await executeCommand(`
+        CREATE TABLE IF NOT EXISTS stock_adjustments (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          delta NUMERIC(6, 2) NOT NULL,
+          reason TEXT NOT NULL,
+          notes TEXT,
+          date DATE NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        );
+      `);
+      await executeCommand(`INSERT INTO settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;`);
       try {
-        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_bot_token TEXT;`);
+        await executeCommand(`ALTER TABLE settings ADD COLUMN IF NOT EXISTS has_seeded BOOLEAN DEFAULT false;`);
       } catch {}
+    } else if (sqlite) {
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS settings (
+          id INTEGER PRIMARY KEY,
+          default_apollo_lead_min INTEGER NOT NULL DEFAULT 7,
+          default_apollo_lead_max INTEGER NOT NULL DEFAULT 10,
+          default_mr_med_lead_min INTEGER NOT NULL DEFAULT 3,
+          default_mr_med_lead_max INTEGER NOT NULL DEFAULT 5,
+          default_offline_lead_min INTEGER NOT NULL DEFAULT 0,
+          default_offline_lead_max INTEGER NOT NULL DEFAULT 1,
+          default_safety_buffer_days INTEGER NOT NULL DEFAULT 5,
+          app_passcode TEXT,
+          reminder_email TEXT,
+          reminder_time TEXT NOT NULL DEFAULT '08:00',
+          reminders_enabled INTEGER NOT NULL DEFAULT 1,
+          ai_provider TEXT NOT NULL DEFAULT 'groq',
+          groq_api_key TEXT,
+          groq_model TEXT NOT NULL DEFAULT 'openai/gpt-oss-120b',
+          ollama_api_key TEXT,
+          ollama_base_url TEXT NOT NULL DEFAULT 'https://ollama.com/v1',
+          ollama_model TEXT NOT NULL DEFAULT 'ollamacloud/gemma4:31b',
+          openai_api_key TEXT,
+          telegram_bot_token TEXT,
+          telegram_chat_id TEXT,
+          telegram_enabled INTEGER DEFAULT 1,
+          has_seeded INTEGER DEFAULT 0
+        );
+      `);
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS medicines (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          strength TEXT,
+          form TEXT NOT NULL DEFAULT 'tablet',
+          unit_label TEXT NOT NULL DEFAULT 'tablets',
+          units_per_pack INTEGER NOT NULL DEFAULT 1,
+          baseline_stock REAL NOT NULL DEFAULT 0,
+          baseline_date TEXT NOT NULL,
+          safety_buffer_days INTEGER,
+          notes TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+      `);
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS dose_schedules (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          time_of_day TEXT NOT NULL,
+          quantity REAL NOT NULL DEFAULT 1,
+          interval_days INTEGER NOT NULL DEFAULT 1,
+          instructions TEXT
+        );
+      `);
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS channel_configs (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          channel TEXT NOT NULL,
+          lead_time_min_days INTEGER NOT NULL,
+          lead_time_max_days INTEGER NOT NULL,
+          available INTEGER NOT NULL DEFAULT 1
+        );
+      `);
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS restock_events (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          channel TEXT NOT NULL,
+          pack_count INTEGER,
+          units_per_pack INTEGER,
+          quantity_added REAL NOT NULL,
+          ordered_date TEXT NOT NULL,
+          expected_arrival_date TEXT,
+          received_date TEXT,
+          cost REAL,
+          notes TEXT,
+          created_at TEXT NOT NULL
+        );
+      `);
+      await sqlite.execute(`
+        CREATE TABLE IF NOT EXISTS stock_adjustments (
+          id TEXT PRIMARY KEY,
+          medicine_id TEXT NOT NULL REFERENCES medicines(id) ON DELETE CASCADE,
+          delta REAL NOT NULL,
+          reason TEXT NOT NULL,
+          notes TEXT,
+          date TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+      `);
+      await sqlite.execute(`INSERT OR IGNORE INTO settings (id) VALUES (1);`);
       try {
-        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_chat_id TEXT;`);
-      } catch {}
-      try {
-        await executeCommand(`ALTER TABLE settings ADD COLUMN telegram_enabled BOOLEAN DEFAULT 1;`);
+        await sqlite.execute(`ALTER TABLE settings ADD COLUMN has_seeded INTEGER DEFAULT 0;`);
       } catch {}
     }
-  } catch {}
+  } catch (err) {
+    console.error("Failed to initialize database tables:", err);
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -175,6 +379,7 @@ export async function getSettings(): Promise<AppSettings> {
     telegram_bot_token: row.telegram_bot_token ? String(row.telegram_bot_token) : null,
     telegram_chat_id: row.telegram_chat_id ? String(row.telegram_chat_id) : null,
     telegram_enabled: row.telegram_enabled !== undefined && row.telegram_enabled !== null ? Boolean(row.telegram_enabled) : true,
+    has_seeded: Boolean(row.has_seeded),
   };
 }
 
@@ -197,9 +402,16 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
         reminder_email = ?,
         reminder_time = ?,
         reminders_enabled = ?,
+        ai_provider = ?,
+        groq_api_key = ?,
+        groq_model = ?,
+        ollama_api_key = ?,
+        ollama_base_url = ?,
+        ollama_model = ?,
         telegram_bot_token = ?,
         telegram_chat_id = ?,
-        telegram_enabled = ?
+        telegram_enabled = ?,
+        has_seeded = ?
       WHERE id = 1;
     `,
     [
@@ -213,10 +425,17 @@ export async function updateSettings(data: Partial<AppSettings>): Promise<AppSet
       merged.app_passcode || null,
       merged.reminder_email || null,
       merged.reminder_time,
-      merged.reminders_enabled ? 1 : 0,
+      merged.reminders_enabled,
+      merged.ai_provider || "groq",
+      merged.groq_api_key || null,
+      merged.groq_model || "openai/gpt-oss-120b",
+      merged.ollama_api_key || null,
+      merged.ollama_base_url || "https://ollama.com",
+      merged.ollama_model || "ollamacloud/gemma4:31b",
       merged.telegram_bot_token || null,
       merged.telegram_chat_id || null,
-      merged.telegram_enabled ? 1 : 0,
+      merged.telegram_enabled ?? true,
+      merged.has_seeded ?? false,
     ]
   );
 
@@ -789,8 +1008,8 @@ export async function getAllCalculatedStates(referenceDate: Date = new Date()): 
 // ----------------------------------------------------------------------------
 
 export async function seedSampleData() {
+  await initDb();
   const { isPg, pg, sqlite } = getClients();
-
   // 1. Wipe all existing rows in single batch
   if (isPg && pg) {
     await pg.unsafe(`
@@ -1196,4 +1415,5 @@ export async function seedSampleData() {
       );
     }
   }
+  await executeCommand("UPDATE settings SET has_seeded = ? WHERE id = 1;", [true]);
 }

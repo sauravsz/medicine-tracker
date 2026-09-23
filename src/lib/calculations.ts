@@ -74,18 +74,55 @@ export const CHANNEL_METADATA: Record<
   },
 };
 
+export function toCalendarDateString(val: unknown): string {
+  if (!val) {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  }
+  if (typeof val === "string") {
+    const s = val.trim();
+    if (s.includes("T")) return s.split("T")[0];
+    if (s.includes(" ")) return s.split(" ")[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+    return s;
+  }
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+    if (val.getUTCHours() === 0 && val.getUTCMinutes() === 0 && val.getUTCSeconds() === 0 && val.getUTCMilliseconds() === 0) {
+      return val.toISOString().split("T")[0];
+    }
+    return `${val.getFullYear()}-${String(val.getMonth() + 1).padStart(2, "0")}-${String(val.getDate()).padStart(2, "0")}`;
+  }
+  return String(val);
+}
+
 export function safeParseDate(val: unknown): Date {
   if (!val) return new Date();
-  if (val instanceof Date) return isNaN(val.getTime()) ? new Date() : val;
+  if (val instanceof Date) {
+    return isNaN(val.getTime()) ? new Date() : new Date(val.getFullYear(), val.getMonth(), val.getDate(), 0, 0, 0, 0);
+  }
   if (typeof val === "string") {
     try {
       const clean = val.split("T")[0].split(" ")[0];
+      const parts = clean.split("-").map(Number);
+      if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+        return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0, 0);
+      }
       const parsed = parseISO(clean);
       if (!isNaN(parsed.getTime())) return parsed;
     } catch {}
     try {
       const fallback = new Date(val);
-      if (!isNaN(fallback.getTime())) return fallback;
+      if (!isNaN(fallback.getTime())) {
+        return new Date(fallback.getFullYear(), fallback.getMonth(), fallback.getDate(), 0, 0, 0, 0);
+      }
     } catch {}
   }
   return new Date();
@@ -104,32 +141,27 @@ export function safeFormatDate(val: unknown, pattern: string = "yyyy-MM-dd"): st
  * Timezone-neutral calendar day difference (eliminates UTC vs IST midnight off-by-one drift)
  */
 export function getCalendarDaysElapsed(laterDate: Date | string, earlierDate: Date | string): number {
-  const d1 = safeParseDate(laterDate);
-  const d2 = safeParseDate(earlierDate);
-  const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
-  const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  const s1 = toCalendarDateString(laterDate);
+  const s2 = toCalendarDateString(earlierDate);
+  const [y1, m1, d1] = s1.split("-").map(Number);
+  const [y2, m2, d2] = s2.split("-").map(Number);
+  const utc1 = Date.UTC(y1, m1 - 1, d1);
+  const utc2 = Date.UTC(y2, m2 - 1, d2);
   return Math.max(0, Math.floor((utc1 - utc2) / (1000 * 60 * 60 * 24)));
 }
 
-/**
- * Detects if a schedule instructions string specifies a specific weekday (e.g. Saturday)
- */
 export function getTargetWeekday(instructions?: string | null): number | null {
   if (!instructions) return null;
   const lower = instructions.toLowerCase();
-  if (lower.includes("sunday") || lower.includes("sun")) return 0;
-  if (lower.includes("monday") || lower.includes("mon")) return 1;
-  if (lower.includes("tuesday") || lower.includes("tue")) return 2;
-  if (lower.includes("wednesday") || lower.includes("wed")) return 3;
-  if (lower.includes("thursday") || lower.includes("thu")) return 4;
-  if (lower.includes("friday") || lower.includes("fri")) return 5;
-  if (lower.includes("saturday") || lower.includes("sat")) return 6;
+  if (/\b(sun|sunday)\b/i.test(lower)) return 0;
+  if (/\b(mon|monday)\b/i.test(lower)) return 1;
+  if (/\b(tue|tues|tuesday)\b/i.test(lower)) return 2;
+  if (/\b(wed|wednesday)\b/i.test(lower)) return 3;
+  if (/\b(thu|thur|thurs|thursday)\b/i.test(lower)) return 4;
+  if (/\b(fri|friday)\b/i.test(lower)) return 5;
+  if (/\b(sat|saturday)\b/i.test(lower)) return 6;
   return null;
 }
-
-/**
- * Calculates the quantity required on a specific date based on schedules and baseline anchor.
- */
 export function getDoseQuantityForDate(
   schedules: DoseSchedule[],
   targetDate: Date,
@@ -193,18 +225,22 @@ export function calculateDaysRemaining(
   referenceDate: Date,
   baselineDate: Date
 ): number {
-  if (stock <= 0) return 0;
   if (!schedules || schedules.length === 0) return 999;
+
+  const dailyRate = calculateDailyConsumption(schedules);
+  if (dailyRate <= 0) return 999;
 
   const allDaily = schedules.every((s) => (Number(s.interval_days) || 1) === 1);
   if (allDaily) {
-    const dailyRate = schedules.reduce((total, s) => total + (Number(s.quantity) || 0), 0);
-    return dailyRate > 0 ? Math.floor(stock / dailyRate) : 999;
+    if (stock <= 0) return 0;
+    return Math.floor(stock / dailyRate);
   }
 
-  let remStock = stock;
+  let remStock = Math.max(0, stock);
   let dayOffset = 0;
-  while (remStock > 0 && dayOffset < 365) {
+  const MAX_DAYS = 365;
+
+  while (dayOffset < MAX_DAYS) {
     dayOffset++;
     const nextDate = addDays(referenceDate, dayOffset);
     const doseNeeded = getDoseQuantityForDate(schedules, nextDate, baselineDate);
@@ -213,12 +249,10 @@ export function calculateDaysRemaining(
         return dayOffset - 1;
       }
       remStock -= doseNeeded;
-      if (remStock === 0) {
-        return dayOffset;
-      }
     }
   }
-  return dayOffset >= 365 ? 999 : dayOffset;
+
+  return 999;
 }
 
 /**
@@ -274,13 +308,17 @@ export function calculateDailyConsumption(schedules: DoseSchedule[]): number {
  */
 export function computeMedicineState(
   medicine: Medicine,
-  schedules: DoseSchedule[],
-  channelConfigs: ChannelConfig[],
-  restocks: RestockEvent[],
-  adjustments: StockAdjustment[],
+  schedules: DoseSchedule[] = [],
+  channelConfigs: ChannelConfig[] = [],
+  restocks: RestockEvent[] = [],
+  adjustments: StockAdjustment[] = [],
   settings: AppSettings = DEFAULT_SETTINGS,
   referenceDate: Date = new Date()
 ): CalculatedMedicineState {
+  const safeSchedules = Array.isArray(schedules) ? schedules : [];
+  const safeChannelConfigs = Array.isArray(channelConfigs) ? channelConfigs : [];
+  const safeRestocks = Array.isArray(restocks) ? restocks : [];
+  const safeAdjustments = Array.isArray(adjustments) ? adjustments : [];
   const todayStr = safeFormatDate(referenceDate, "yyyy-MM-dd");
   const baselineDate = safeParseDate(medicine.baseline_date || todayStr);
 
@@ -298,14 +336,24 @@ export function computeMedicineState(
     referenceDate
   );
 
+  const baselineDateStr = toCalendarDateString(medicine.baseline_date || todayStr);
+
   // 2. Sum received restocks recorded on or after baseline date
   const receivedRestocksSinceBaseline = restocks
-    .filter((r) => r.received_date && !isBefore(safeParseDate(r.received_date), baselineDate))
+    .filter((r) => r.received_date && toCalendarDateString(r.received_date) >= baselineDateStr)
     .reduce((sum, r) => sum + (Number(r.quantity_added) || 0), 0);
 
-  // 3. Sum manual adjustments recorded on or after baseline date
+  // 3. Sum manual adjustments recorded on or after baseline date (excluding baseline recount)
   const adjustmentsSinceBaseline = adjustments
-    .filter((a) => !isBefore(safeParseDate(a.date), baselineDate))
+    .filter((a) => {
+      const aDateStr = toCalendarDateString(a.date);
+      if (aDateStr < baselineDateStr) return false;
+      // Recount adjustment on baseline date is what set baseline_stock itself; do not double count
+      if (a.reason === "audit_recount" && aDateStr === baselineDateStr) {
+        return false;
+      }
+      return true;
+    })
     .reduce((sum, a) => sum + (Number(a.delta) || 0), 0);
 
   // 4. Current physical on-hand stock
@@ -328,7 +376,7 @@ export function computeMedicineState(
   let latestEta: string | null = null;
   if (inTransitOrders.length > 0) {
     const etas = inTransitOrders
-      .map((o) => safeFormatDate(o.expected_arrival_date || o.ordered_date))
+      .map((o) => toCalendarDateString(o.expected_arrival_date || o.ordered_date))
       .sort();
     earliestEta = etas[0] || null;
     latestEta = etas[etas.length - 1] || null;
@@ -352,14 +400,15 @@ export function computeMedicineState(
   );
   const effectiveStockOutDate = safeFormatDate(addDays(referenceDate, effectiveDaysRemaining));
 
-  // In-transit shielding: order is active and arriving
+  // In-transit order strictly covers stockout only if it arrives on or before stock runs out
+  const earliestEtaStr = earliestEta ? toCalendarDateString(earliestEta) : null;
+  const stockOutDateStr = toCalendarDateString(stockOutDate);
   const hasInTransit = inTransitOrders.length > 0;
   const inTransitCovers = Boolean(
     hasInTransit &&
-      earliestEta &&
-      (isBefore(safeParseDate(earliestEta), safeParseDate(stockOutDate)) ||
-        isSameDay(safeParseDate(earliestEta), safeParseDate(stockOutDate)) ||
-        daysRemaining <= 5)
+      earliestEtaStr &&
+      earliestEtaStr <= stockOutDateStr &&
+      inTransitUnits > 0
   );
 
   const inTransitSummary: InTransitSummary = {
@@ -418,7 +467,7 @@ export function computeMedicineState(
 
   let urgency: UrgencyStatus = "OK";
   let urgencyLabel = "OK — Stock Healthy";
-  let urgencyColor: "emerald" | "amber" | "orange" | "rose" = "emerald";
+  let urgencyColor: "emerald" | "amber" | "orange" | "rose" | "blue" = "emerald";
   let recommendedAction = "";
   let recommendedChannel: ChannelType | "none" = "apollo";
   let recommendedOrderBy = apolloDeadline?.order_by_date || stockOutDate;
@@ -430,23 +479,31 @@ export function computeMedicineState(
     recommendedAction = "Configure dose schedule to begin automated tracking.";
     recommendedChannel = "none";
     recommendedOrderBy = "N/A";
-  } else if (hasInTransit && (onHandStock <= 0 || inTransitCovers)) {
-    // FIX 1: Suppress false critical alarm when order is already en route
+  } else if (onHandStock <= 0) {
+    // Stock is depleted right now
+    urgency = "CRITICAL";
+    urgencyLabel = hasInTransit ? "Critical — Stock Depleted" : "Critical — Stock Depleted";
+    urgencyColor = "rose";
+    recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
+    recommendedOrderBy = todayStr;
+    if (hasInTransit && earliestEtaStr && earliestEtaStr === todayStr) {
+      recommendedAction = `Stock is 0! Refill of ${inTransitUnits} ${medicine.unit_label} arriving today. Confirm receipt once delivered.`;
+    } else if (hasInTransit && earliestEta) {
+      recommendedAction = `CRITICAL: Stock is 0! Refill en route arrives ~${safeFormatDate(earliestEta, "dd MMM")}, but you need an emergency bridge supply from a local pharmacy today.`;
+    } else {
+      recommendedAction = offlineDeadline?.available
+        ? "Stock is 0! Purchase immediately from local offline pharmacy."
+        : "Stock is 0! Order immediately from fastest available vendor.";
+    }
+  } else if (hasInTransit && inTransitCovers) {
+    // Refill is ordered and arrives strictly on or before stockout
     const firstOrder = inTransitOrders[0];
     urgency = "ORDER_SOON";
     urgencyLabel = `En Route (${inTransitUnits} ${medicine.unit_label})`;
-    urgencyColor = "amber";
+    urgencyColor = "blue";
     recommendedChannel = firstOrder.channel;
     recommendedOrderBy = earliestEta || todayStr;
-    recommendedAction = `Order en route: +${inTransitUnits} ${medicine.unit_label} arriving ~${earliestEta || "soon"} via ${CHANNEL_METADATA[firstOrder.channel]?.name || firstOrder.channel}.`;
-  } else if (onHandStock <= 0) {
-    urgency = "CRITICAL";
-    urgencyLabel = "Critical — Stock Depleted";
-    urgencyColor = "rose";
-    recommendedAction = offlineDeadline?.available
-      ? "Stock is 0! Purchase immediately from local offline pharmacy."
-      : "Stock is 0! Order immediately from fastest available vendor.";
-    recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
+    recommendedAction = `Refill en route: +${inTransitUnits} ${medicine.unit_label} arriving ~${safeFormatDate(earliestEta, "dd MMM")} via ${CHANNEL_METADATA[firstOrder.channel]?.name || firstOrder.channel}.`;
   } else if (availableDeadlines.length === 0) {
     urgency = "CRITICAL";
     urgencyLabel = "No Active Channel";
@@ -472,11 +529,11 @@ export function computeMedicineState(
       if (firstViableChannel) {
         if (firstViableChannel.channel === "mr_med") {
           urgency = "ORDER_SOON";
-          urgencyLabel = "Order Soon — Apollo Cutoff Passed";
+          urgencyLabel = "Order Soon — Standard Cutoff Passed";
           urgencyColor = "amber";
           recommendedChannel = "mr_med";
           recommendedOrderBy = firstViableChannel.order_by_date;
-          recommendedAction = `Apollo window passed. Order via Mr. Med by ${safeFormatDate(
+          recommendedAction = `Order via Mr. Med by ${safeFormatDate(
             firstViableChannel.order_by_date,
             "dd MMM yyyy"
           )}.`;
@@ -502,19 +559,20 @@ export function computeMedicineState(
           )}.`;
         }
       } else {
-        if (inTransitCovers) {
-          urgency = "ORDER_SOON";
-          urgencyLabel = "Refill in Transit";
-          urgencyColor = "amber";
-          recommendedAction = `Reorder window passed, but ${inTransitUnits} ${medicine.unit_label} arriving by ${earliestEta}.`;
-          recommendedChannel = "offline";
+        if (hasInTransit) {
+          urgency = "CRITICAL";
+          urgencyLabel = "Critical — Stockout Gap";
+          urgencyColor = "rose";
+          recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
+          recommendedOrderBy = todayStr;
+          recommendedAction = `CRITICAL: Stockout in ${daysRemaining} days (${safeFormatDate(stockOutDate, "dd MMM")}) before refill arrives (${safeFormatDate(earliestEta, "dd MMM")}). Buy bridge supply from local store.`;
         } else {
           urgency = "CRITICAL";
           urgencyLabel = "Critical — Stockout Risk";
           urgencyColor = "rose";
           recommendedChannel = offlineDeadline?.available ? "offline" : (mrMedDeadline?.available ? "mr_med" : "apollo");
           recommendedOrderBy = todayStr;
-          recommendedAction = `CRITICAL: Stockout in ${daysRemaining} days (${stockOutDate}). Buy immediately from local store.`;
+          recommendedAction = `CRITICAL: Stockout in ${daysRemaining} days (${safeFormatDate(stockOutDate, "dd MMM yyyy")}). Buy immediately from local store.`;
         }
       }
     }
